@@ -1,7 +1,5 @@
 package org.talend.components.common.runtime;
 
-import java.net.Authenticator;
-
 import org.talend.components.common.ProxyProperties;
 
 public class ProxyPropertiesRuntimeHelper {
@@ -20,14 +18,6 @@ public class ProxyPropertiesRuntimeHelper {
             setPropertyValue("http.nonProxyHosts", "192.168.0.* | localhost");
             setPropertyValue("http.proxyUser", properties.userPassword.userId.getStringValue());
             setPropertyValue("http.proxyPassword", properties.userPassword.password.getStringValue());
-            Authenticator.setDefault(new java.net.Authenticator() {
-
-                @Override
-                public java.net.PasswordAuthentication getPasswordAuthentication() {
-                    return new java.net.PasswordAuthentication(properties.userPassword.userId.getStringValue(),
-                            properties.userPassword.password.getStringValue().toCharArray());
-                }
-            });
         } else if (ProxyProperties.ProxyType.SOCKS.equals(type)) {
             setPropertyValue("socksProxySet", "true");
             setPropertyValue("socksProxyHost", properties.host.getStringValue());

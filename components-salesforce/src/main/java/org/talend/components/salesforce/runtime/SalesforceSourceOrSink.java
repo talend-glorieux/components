@@ -13,7 +13,9 @@
 package org.talend.components.salesforce.runtime;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -298,11 +300,12 @@ public class SalesforceSourceOrSink implements SourceOrSink {
     }
 
     private void setProxy(ConnectorConfig config) {
+        Proxy socketProxy = null;
+
         String proxyHost = null;
         String proxyPort = null;
         String proxyUser = null;
         String proxyPwd = null;
-        Proxy.Type proxyType = Proxy.Type.HTTP;
         if (System.getProperty("https.proxyHost") != null) {
             proxyHost = System.getProperty("https.proxyHost");
             proxyPort = System.getProperty("https.proxyPort");
@@ -318,20 +321,36 @@ public class SalesforceSourceOrSink implements SourceOrSink {
             proxyPort = System.getProperty("socksProxyPort");
             proxyUser = System.getProperty("java.net.socks.username");
             proxyPwd = System.getProperty("java.net.socks.password");
-            proxyType = Proxy.Type.SOCKS;
+
+            SocketAddress addr = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
+            socketProxy = new Proxy(Proxy.Type.SOCKS, addr);
         }
 
+        final String proxyUsername = proxyUser;
+        final String proxyPassword = proxyPwd;
         if (proxyHost != null) {
-            SocketAddress addr = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
-            config.setProxy(new Proxy(proxyType, addr));
-            if (proxyUser != null && proxyUser.length() > 0) {
-                config.setProxyUsername(proxyUser);
+            if (socketProxy != null) {
+                config.setProxy(socketProxy);
+            } else {
+                config.setProxy(proxyHost, Integer.parseInt(proxyPort));
             }
-            if (proxyPwd != null && proxyPwd.length() > 0) {
-                config.setProxyPassword(proxyPwd);
+
+            if (proxyUsername != null && proxyUsername.length() > 0) {
+                config.setProxyUsername(proxyUsername);
+
+                if (proxyPassword != null && proxyPassword.length() > 0) {
+                    config.setProxyPassword(proxyPassword);
+
+                    Authenticator.setDefault(new Authenticator() {
+
+                        @Override
+                        public PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray());
+                        }
+
+                    });
+                }
             }
-        } else {
-            // No proxy.
         }
     }
 
