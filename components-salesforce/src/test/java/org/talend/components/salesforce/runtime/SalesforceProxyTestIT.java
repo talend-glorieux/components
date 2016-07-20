@@ -17,7 +17,7 @@ import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.tsalesforceconnection.TSalesforceConnectionDefinition;
 import org.talend.daikon.properties.ValidationResult;
 
-public class SalesforceProxyTest extends SalesforceTestBase {
+public class SalesforceProxyTestIT extends SalesforceTestBase {
 
     private static HttpProxyServer server;
 
