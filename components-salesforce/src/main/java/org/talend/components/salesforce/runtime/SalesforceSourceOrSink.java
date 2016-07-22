@@ -32,7 +32,6 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.common.ProxyProperties;
-import org.talend.components.common.runtime.ProxyPropertiesRuntimeHelper;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.SalesforceProvideConnectionProperties;
 import org.talend.components.salesforce.connection.oauth.SalesforceOAuthConnection;
@@ -179,8 +178,6 @@ public class SalesforceSourceOrSink implements SourceOrSink {
         }
         config.setPassword(password);
 
-        ProxyPropertiesRuntimeHelper.setProxy(connProps.proxy, ProxyProperties.ProxyType.SOCKS);
-
         setProxy(config);
 
         // Notes on how to test this
@@ -306,7 +303,14 @@ public class SalesforceSourceOrSink implements SourceOrSink {
         String proxyPort = null;
         String proxyUser = null;
         String proxyPwd = null;
-        if (System.getProperty("https.proxyHost") != null) {
+
+        ProxyProperties proxySetting = properties.getConnectionProperties().proxy;
+        if (proxySetting.useProxy.getValue()) {// proxy setting from component setting
+            proxyHost = proxySetting.host.getStringValue();
+            proxyPort = proxySetting.port.getStringValue();
+            proxyUser = proxySetting.userPassword.userId.getStringValue();
+            proxyPwd = proxySetting.userPassword.password.getStringValue();
+        } else if (System.getProperty("https.proxyHost") != null) {// set by other components like tSetProxy
             proxyHost = System.getProperty("https.proxyHost");
             proxyPort = System.getProperty("https.proxyPort");
             proxyUser = System.getProperty("https.proxyUser");
