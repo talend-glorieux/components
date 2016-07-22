@@ -310,6 +310,10 @@ public class SalesforceSourceOrSink implements SourceOrSink {
             proxyPort = proxySetting.port.getStringValue();
             proxyUser = proxySetting.userPassword.userId.getStringValue();
             proxyPwd = proxySetting.userPassword.password.getStringValue();
+
+            // use socks as default like before
+            SocketAddress addr = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
+            socketProxy = new Proxy(Proxy.Type.SOCKS, addr);
         } else if (System.getProperty("https.proxyHost") != null) {// set by other components like tSetProxy
             proxyHost = System.getProperty("https.proxyHost");
             proxyPort = System.getProperty("https.proxyPort");
