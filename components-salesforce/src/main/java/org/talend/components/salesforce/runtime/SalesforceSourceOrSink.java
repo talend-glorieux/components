@@ -14,10 +14,7 @@ package org.talend.components.salesforce.runtime;
 
 import java.io.IOException;
 import java.net.Authenticator;
-import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +28,7 @@ import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.common.ProxyProperties;
+import org.talend.components.common.runtime.ProxyPropertiesRuntimeHelper;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.SalesforceProvideConnectionProperties;
 import org.talend.components.salesforce.connection.oauth.SalesforceOAuthConnection;
@@ -297,63 +294,27 @@ public class SalesforceSourceOrSink implements SourceOrSink {
     }
 
     private void setProxy(ConnectorConfig config) {
-        Proxy socketProxy = null;
+        final ProxyPropertiesRuntimeHelper proxyHelper = new ProxyPropertiesRuntimeHelper(
+                properties.getConnectionProperties().proxy);
 
-        String proxyHost = null;
-        String proxyPort = null;
-        String proxyUser = null;
-        String proxyPwd = null;
-
-        ProxyProperties proxySetting = properties.getConnectionProperties().proxy;
-        if (proxySetting.useProxy.getValue()) {// proxy setting from component setting
-            proxyHost = proxySetting.host.getStringValue();
-            proxyPort = proxySetting.port.getStringValue();
-            proxyUser = proxySetting.userPassword.userId.getStringValue();
-            proxyPwd = proxySetting.userPassword.password.getStringValue();
-
-            // use socks as default like before
-            SocketAddress addr = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
-            socketProxy = new Proxy(Proxy.Type.SOCKS, addr);
-        } else if (System.getProperty("https.proxyHost") != null) {// set by other components like tSetProxy
-            proxyHost = System.getProperty("https.proxyHost");
-            proxyPort = System.getProperty("https.proxyPort");
-            proxyUser = System.getProperty("https.proxyUser");
-            proxyPwd = System.getProperty("https.proxyPassword");
-        } else if (System.getProperty("http.proxyHost") != null) {
-            proxyHost = System.getProperty("http.proxyHost");
-            proxyPort = System.getProperty("http.proxyPort");
-            proxyUser = System.getProperty("http.proxyUser");
-            proxyPwd = System.getProperty("http.proxyPassword");
-        } else if (System.getProperty("socksProxyHost") != null) {
-            proxyHost = System.getProperty("socksProxyHost");
-            proxyPort = System.getProperty("socksProxyPort");
-            proxyUser = System.getProperty("java.net.socks.username");
-            proxyPwd = System.getProperty("java.net.socks.password");
-
-            SocketAddress addr = new InetSocketAddress(proxyHost, Integer.parseInt(proxyPort));
-            socketProxy = new Proxy(Proxy.Type.SOCKS, addr);
-        }
-
-        final String proxyUsername = proxyUser;
-        final String proxyPassword = proxyPwd;
-        if (proxyHost != null) {
-            if (socketProxy != null) {
-                config.setProxy(socketProxy);
+        if (proxyHelper.getProxyHost() != null) {
+            if (proxyHelper.getSocketProxy() != null) {
+                config.setProxy(proxyHelper.getSocketProxy());
             } else {
-                config.setProxy(proxyHost, Integer.parseInt(proxyPort));
+                config.setProxy(proxyHelper.getProxyHost(), Integer.parseInt(proxyHelper.getProxyPort()));
             }
 
-            if (proxyUsername != null && proxyUsername.length() > 0) {
-                config.setProxyUsername(proxyUsername);
+            if (proxyHelper.getProxyUser() != null && proxyHelper.getProxyUser().length() > 0) {
+                config.setProxyUsername(proxyHelper.getProxyUser());
 
-                if (proxyPassword != null && proxyPassword.length() > 0) {
-                    config.setProxyPassword(proxyPassword);
+                if (proxyHelper.getProxyPwd() != null && proxyHelper.getProxyPwd().length() > 0) {
+                    config.setProxyPassword(proxyHelper.getProxyPwd());
 
                     Authenticator.setDefault(new Authenticator() {
 
                         @Override
                         public PasswordAuthentication getPasswordAuthentication() {
-                            return new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray());
+                            return new PasswordAuthentication(proxyHelper.getProxyPwd(), proxyHelper.getProxyPwd().toCharArray());
                         }
 
                     });
