@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
 import org.talend.components.api.component.Connector;
@@ -320,6 +321,28 @@ public class ComponentServiceSpring implements ComponentService {
         InputStream componentPngImageStream = getComponentPngImage(name, type);
         sendStreamBack(response, componentPngImageStream);
     }
+
+    @RequestMapping(value = BASE_PATH + "/components/{name}/{type}", method = RequestMethod.POST)
+    @ApiOperation(value = "Return where to interact with the runtime", notes = "return where to interact with the runtime.")
+    public RedirectView setupComponentRuntimeFromRestAPI(
+            @ApiParam(name = "name", value = "Name of the component") @PathVariable(value = "name") String name,
+            @ApiParam(name = "type", value = "Target component type, e.g. source, sink...") @PathVariable(value = "type") String type,
+            @ApiParam(name = "properties", value = "Properties to setup the component.") @RequestBody Properties properties) {
+
+        LOGGER.debug("setting up runtime for component {} -> {} with {} properties", name, type, properties.getProperties().size());
+
+        String id = setupComponentRuntime(name, type, properties);
+        LOGGER.info("runtime setup for {} / {} --> {}", name, type, id);
+
+        return new RedirectView("/components/"+ name + '/'+ type + '/' + id);
+    }
+
+
+    @Override
+    public String setupComponentRuntime(String name, String type, Properties properties) {
+        return componentServiceDelegate.setupComponentRuntime(name, type, properties);
+    }
+
 
     // FIXME - make this work for web
     @Override

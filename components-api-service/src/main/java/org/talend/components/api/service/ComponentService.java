@@ -153,7 +153,7 @@ public interface ComponentService extends PropertiesService<Properties> {
     void setRepository(Repository repository);
 
     /**
-     * list all the depencencies required for this component to be executed at runtime
+     * list all the dependencies required for this component to be executed at runtime
      * 
      * @param componentName name of the component to get the dependencies of.
      * @return a set of maven uri following the pax-maven uri scheme @see
@@ -198,4 +198,13 @@ public interface ComponentService extends PropertiesService<Properties> {
     Set<? extends Connector> getAvailableConnectors(ComponentProperties componentProperties,
             Set<? extends Connector> connectedConnetor, boolean isOuput);
 
+    /**
+     * Setup a component runtime.
+     *
+     * @param name the component name.
+     * @param type the target runtime type (source, sink or transform).
+     * @param properties the properties to set the runtime up.
+     * @return the runtime id.
+     */
+    String setupComponentRuntime(String name, String type, Properties properties);
 }

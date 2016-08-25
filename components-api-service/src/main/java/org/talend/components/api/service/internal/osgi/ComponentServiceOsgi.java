@@ -264,4 +264,8 @@ public class ComponentServiceOsgi implements ComponentService {
         return componentServiceDelegate.setNestedPropertiesValues(targetProperties, nestedValues);
     }
 
+    @Override
+    public String setupComponentRuntime(String name, String type, Properties properties) {
+        return componentServiceDelegate.setupComponentRuntime(name, type, properties);
+    }
 }

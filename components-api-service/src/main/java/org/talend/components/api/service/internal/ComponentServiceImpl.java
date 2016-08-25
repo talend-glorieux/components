@@ -16,14 +16,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.avro.Schema;
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +80,8 @@ public class ComponentServiceImpl extends PropertiesServiceImpl implements Compo
     private ComponentRegistry componentRegistry;
 
     private ModelBuilder modelBuilder;
+
+    private RuntimePropertiesRepository runtimePropertiesRepository = new FifoRuntimePropertiesRepository();
 
     public ComponentServiceImpl(ComponentRegistry componentRegistry) {
         this.componentRegistry = componentRegistry;
@@ -485,6 +480,17 @@ public class ComponentServiceImpl extends PropertiesServiceImpl implements Compo
     @Override
     public void setSchema(ComponentProperties componentProperties, Connector connector, Schema schema, boolean isOuput) {
         componentProperties.setConnectedSchema(connector, schema, isOuput);
+    }
+
+    @Override
+    public String setupComponentRuntime(String name, String type, Properties properties) {
+
+        //TODO type 'type' parameter
+        //TODO check parameters consistency
+
+        String id = String.valueOf(Objects.hash(properties));
+        runtimePropertiesRepository.add(id, properties);
+        return id;
     }
 
 }

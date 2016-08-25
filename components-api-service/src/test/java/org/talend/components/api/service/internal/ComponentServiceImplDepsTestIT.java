@@ -32,6 +32,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -48,6 +49,14 @@ public class ComponentServiceImplDepsTestIT {
     String FULL_DEPS_TEST = FULL_DEPS
             + ",mvn:junit/junit/4.11/jar,mvn:org.hamcrest/hamcrest-library/1.3/jar,mvn:org.hamcrest/hamcrest-core/1.3/jar";
 
+
+    private ComponentServiceImpl componentServiceImpl;
+
+    @Before
+    public void setUp() throws Exception {
+        componentServiceImpl = new ComponentServiceImpl(null);
+    }
+
     /**
      * Test method for
      * {@link org.talend.components.api.service.internal.ComponentServiceImpl#loadPom(java.io.InputStream, org.talend.components.api.service.internal.MavenBooter)}
@@ -55,7 +64,6 @@ public class ComponentServiceImplDepsTestIT {
      */
     @Test
     public void testLoadPom() throws ModelBuildingException, URISyntaxException, IOException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         URL pomUrl = this.getClass().getResource("pom.xml"); //$NON-NLS-1$
         final File temporaryFolder = new File(new File(pomUrl.toURI()).getParentFile(), "tempFolder");
         try {
@@ -77,7 +85,6 @@ public class ComponentServiceImplDepsTestIT {
     @Test
     @Ignore("This requires authentication credential in the settings.xml")
     public void testLoadPomWithAuthentification() throws ModelBuildingException, URISyntaxException, IOException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         URL pomUrl = this.getClass().getResource("pom.xml"); //$NON-NLS-1$
         final File temporaryFolder = new File(new File(pomUrl.toURI()).getParentFile(), "tempFolder");
         System.setProperty(MavenBooter.TALEND_MAVEN_REMOTE_REPOSITORY_ID_SYS_PROP, "releases");
@@ -103,7 +110,6 @@ public class ComponentServiceImplDepsTestIT {
 
     @Test
     public void testLoadPomWithProfiles() throws ModelBuildingException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         Model pom = componentServiceImpl.loadPom(this.getClass().getResourceAsStream("pom.xml"), new MavenBooter(), //$NON-NLS-1$
                 Arrays.asList("prof1", "prof2"));
         List<Dependency> dependencies = pom.getDependencies();
@@ -134,7 +140,6 @@ public class ComponentServiceImplDepsTestIT {
     @Test
     public void testGetRuntimeDependencies() throws ModelBuildingException, URISyntaxException, IOException,
             DependencyCollectionException, DependencyResolutionException, XmlPullParserException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         URL pomUrl = this.getClass().getResource("pom.xml"); //$NON-NLS-1$
         InputStream stream = pomUrl.openStream();
         try {
@@ -149,7 +154,6 @@ public class ComponentServiceImplDepsTestIT {
     @Test
     public void testGetTestDependenciesIncludingTransitive() throws ModelBuildingException, URISyntaxException, IOException,
             DependencyCollectionException, DependencyResolutionException, XmlPullParserException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         URL pomUrl = this.getClass().getResource("pom.xml"); //$NON-NLS-1$
         InputStream stream = pomUrl.openStream();
         try {
@@ -164,7 +168,6 @@ public class ComponentServiceImplDepsTestIT {
     @Test
     public void testGetTestDependenciesCache() throws ModelBuildingException, URISyntaxException, IOException,
             DependencyCollectionException, DependencyResolutionException, XmlPullParserException {
-        ComponentServiceImpl componentServiceImpl = new ComponentServiceImpl(null);
         URL pomUrl = this.getClass().getResource("pom.xml"); //$NON-NLS-1$
         InputStream stream = pomUrl.openStream();
         Set<String> mavenUriDependencies;
@@ -183,4 +186,16 @@ public class ComponentServiceImplDepsTestIT {
         }
     }
 
+    @Test
+    public void shouldSetUpComponentRuntime() throws Exception {
+        // given
+        DummyTestProperties properties = new DummyTestProperties();
+
+        // when
+        String id = componentServiceImpl.setupComponentRuntime("toto", "source", properties);
+
+        // then
+        assertNotNull(id);
+
+    }
 }
