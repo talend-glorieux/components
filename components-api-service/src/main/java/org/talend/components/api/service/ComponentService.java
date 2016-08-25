@@ -13,6 +13,7 @@
 package org.talend.components.api.service;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -206,5 +207,19 @@ public interface ComponentService extends PropertiesService<Properties> {
      * @param properties the properties to set the runtime up.
      * @return the runtime id.
      */
-    String setupComponentRuntime(String name, String type, Properties properties);
+    String setupComponentRuntime(String name, String type, ComponentProperties properties);
+
+    /**
+     * Execute a 'source' runtime and writes the content to the given output stream.
+     *
+     * The runtime first needs to be setup, {@link #setupComponentRuntime(String, String, ComponentProperties)}
+     *
+     * @param name the component name.
+     * @param type the component type.
+     * @param id the runtime id.
+     * @param output where to write the runtime content.
+     */
+    //TODO add from & limit optional parameters
+    void readRuntimeInput(String name, String type, String id, OutputStream output);
+
 }

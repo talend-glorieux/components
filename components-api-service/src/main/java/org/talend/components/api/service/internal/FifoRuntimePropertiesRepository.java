@@ -3,7 +3,7 @@ package org.talend.components.api.service.internal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.talend.daikon.properties.Properties;
+import org.talend.components.api.properties.ComponentProperties;
 
 /**
  * FIFO implementation of the RuntimePropertiesRepository.
@@ -16,16 +16,16 @@ public class FifoRuntimePropertiesRepository implements RuntimePropertiesReposit
     private static final int MAP_SIZE=100;
 
     /** Where the properties are stored. */
-    private LinkedHashMap<String, Properties> map;
+    private LinkedHashMap<String, ComponentProperties> map;
 
     /**
      * Default empty constructor.
      */
     public FifoRuntimePropertiesRepository() {
-        map = new LinkedHashMap<String, Properties>(MAP_SIZE) {
+        map = new LinkedHashMap<String, ComponentProperties>(MAP_SIZE) {
 
             @Override
-            protected boolean removeEldestEntry(Map.Entry<String, Properties> entry) {
+            protected boolean removeEldestEntry(Map.Entry<String, ComponentProperties> entry) {
                 return size() > MAP_SIZE;
             }
         };
@@ -33,14 +33,14 @@ public class FifoRuntimePropertiesRepository implements RuntimePropertiesReposit
 
 
     @Override
-    public void add(String runtimeId, Properties properties) {
+    public void add(String runtimeId, ComponentProperties properties) {
         if (!map.containsKey(runtimeId)) {
             map.put(runtimeId, properties);
         }
     }
 
     @Override
-    public Properties get(String runtimeId) {
+    public ComponentProperties get(String runtimeId) {
         return map.get(runtimeId);
     }
 

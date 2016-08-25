@@ -12,13 +12,15 @@
 // ============================================================================
 package org.talend.components.api.service.internal;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.JsonEncoder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
@@ -55,6 +57,10 @@ import org.talend.components.api.Constants;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
 import org.talend.components.api.component.Connector;
+import org.talend.components.api.component.InputComponentDefinition;
+import org.talend.components.api.component.runtime.*;
+import org.talend.components.api.component.runtime.Reader;
+import org.talend.components.api.container.DefaultComponentRuntimeContainerImpl;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.exception.error.ComponentsApiErrorCode;
 import org.talend.components.api.properties.ComponentProperties;
@@ -63,8 +69,11 @@ import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.components.api.wizard.ComponentWizardDefinition;
 import org.talend.components.api.wizard.WizardImageType;
 import org.talend.daikon.NamedThing;
+import org.talend.daikon.avro.AvroRegistry;
+import org.talend.daikon.avro.converter.IndexedRecordConverter;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.properties.Properties;
+import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.service.PropertiesServiceImpl;
 
 /**
@@ -483,7 +492,7 @@ public class ComponentServiceImpl extends PropertiesServiceImpl implements Compo
     }
 
     @Override
-    public String setupComponentRuntime(String name, String type, Properties properties) {
+    public String setupComponentRuntime(String name, String type, ComponentProperties properties) {
 
         //TODO type 'type' parameter
         //TODO check parameters consistency
@@ -493,4 +502,94 @@ public class ComponentServiceImpl extends PropertiesServiceImpl implements Compo
         return id;
     }
 
+    @Override
+    public void readRuntimeInput(String name, String type, String id, OutputStream output) {
+
+        // check that there are setup properties for the wanted runtime
+        if (!runtimePropertiesRepository.contains(id)) {
+            String errorMessage = "runtime #"+id+" ("+name + " - " + type +") was not found in the setup runtimes";
+            LOGGER.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // check that the target type matches the component definition
+        ComponentDefinition definition = getComponentDefinition(name);
+        if (!(definition instanceof InputComponentDefinition)) {
+            String errorMessage = "component "+ name + " is not a an InputComponent";
+            LOGGER.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // initialize the source
+        Source source = ((InputComponentDefinition) definition).getRuntime();
+        DefaultComponentRuntimeContainerImpl container = new DefaultComponentRuntimeContainerImpl();
+        source.initialize(container, runtimePropertiesRepository.get(id));
+
+        // validate the source
+        ValidationResult validationResult = source.validate(container);
+        ValidationResult.Result status = validationResult.getStatus();
+        if (status == ValidationResult.Result.ERROR) {
+            RuntimeException exception = new RuntimeException("error during source validation for " + name + " : " + validationResult.getMessage());
+            LOGGER.error(exception.getMessage(), exception);
+            throw exception;
+        }
+        else if (status == ValidationResult.Result.WARNING) {
+            LOGGER.warn("warning validating {} : {}", name, validationResult.getMessage());
+        }
+
+        // read the source and write the records to the response
+        Reader reader = source.createReader(container);
+
+        // this new avro registry inherits from all the registered converters
+        AvroRegistry avroRegistry = new AvroRegistry();
+        IndexedRecordConverter converter = null;
+
+        DatumWriter<Object> writer = null;
+        JsonEncoder encoder = null;
+
+        try {
+            boolean recordRead = reader.start();
+            while (recordRead) {
+                Object currentObject = reader.getCurrent();
+
+                // get the avro converter
+                if (converter == null) {
+                    converter = avroRegistry.createIndexedRecordConverter(currentObject.getClass());
+                    if (converter == null) {
+                        throw new IOException("cannot find avro converter for class "+ currentObject.getClass());
+                    }
+                }
+
+                // convert to avro...
+                IndexedRecord currentRecord = (IndexedRecord) converter.convertToAvro(currentObject);
+
+                // ...then to json
+                if (writer == null || encoder == null) {
+                    Schema schema = currentRecord.getSchema();
+                    writer = new GenericDatumWriter<>(schema);
+                    encoder = EncoderFactory.get().jsonEncoder(schema, output);
+                }
+
+                // writes the record
+                writer.write(currentRecord, encoder);
+
+                // read the next record
+                recordRead = reader.advance();
+            }
+        }
+        catch (IOException ioe) {
+            LOGGER.error(ioe.getMessage(), ioe);
+            throw new RuntimeException(ioe.getMessage(), ioe);
+        }
+        finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                LOGGER.warn("error closing reader for {}", name, e);
+            }
+        }
+
+
+
+    }
 }

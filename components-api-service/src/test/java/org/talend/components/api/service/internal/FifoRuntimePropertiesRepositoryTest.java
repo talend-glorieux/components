@@ -3,8 +3,8 @@ package org.talend.components.api.service.internal;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.talend.daikon.properties.Properties;
-import org.talend.daikon.properties.PropertiesImpl;
+import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.api.properties.ComponentPropertiesImpl;
 
 /**
  * Unit test for the org.talend.components.api.service.internal.FifoRuntimePropertiesRepository class.
@@ -29,7 +29,7 @@ public class FifoRuntimePropertiesRepositoryTest {
     public void shouldGetWhatWasAdded() throws Exception {
 
         // given
-        Properties expected = randomProperties();
+        ComponentProperties expected = randomProperties();
 
         // when
         map.add("2", expected);
@@ -53,7 +53,7 @@ public class FifoRuntimePropertiesRepositoryTest {
     }
 
 
-    private Properties randomProperties() {
-        return new PropertiesImpl("test-" + System.currentTimeMillis());
+    private ComponentProperties randomProperties() {
+        return new ComponentPropertiesImpl("test-" + System.currentTimeMillis());
     }
 }

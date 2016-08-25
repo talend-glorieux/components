@@ -13,11 +13,8 @@
 package org.talend.components.api.service.internal.osgi;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.OutputStream;
+import java.util.*;
 
 import org.apache.avro.Schema;
 import org.osgi.framework.BundleContext;
@@ -25,7 +22,6 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.api.AbstractTopLevelDefinition;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
 import org.talend.components.api.component.Connector;
@@ -265,7 +261,13 @@ public class ComponentServiceOsgi implements ComponentService {
     }
 
     @Override
-    public String setupComponentRuntime(String name, String type, Properties properties) {
+    public String setupComponentRuntime(String name, String type, ComponentProperties properties) {
         return componentServiceDelegate.setupComponentRuntime(name, type, properties);
+    }
+
+
+    @Override
+    public void readRuntimeInput(String name, String type, String id, OutputStream output) {
+        componentServiceDelegate.readRuntimeInput(name, type, id, output);
     }
 }

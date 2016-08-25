@@ -196,6 +196,5 @@ public class ComponentServiceImplDepsTestIT {
 
         // then
         assertNotNull(id);
-
     }
 }

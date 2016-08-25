@@ -1,6 +1,6 @@
 package org.talend.components.api.service.internal;
 
-import org.talend.daikon.properties.Properties;
+import org.talend.components.api.properties.ComponentProperties;
 
 /**
  * Repository used to store properties for a component runtime.
@@ -13,7 +13,7 @@ public interface RuntimePropertiesRepository {
      * @param runtimeId the runtime id.
      * @param properties the properties to store.
      */
-    void add(String runtimeId, Properties properties);
+    void add(String runtimeId, ComponentProperties properties);
 
     /**
      * Return the properties out of the given runtime id.
@@ -21,7 +21,7 @@ public interface RuntimePropertiesRepository {
      * @param runtimeId the runtime id.
      * @return the properties out of the given runtime id or null if there's none.
      */
-    Properties get(String runtimeId);
+    ComponentProperties get(String runtimeId);
 
     /**
      * Return true if the repository has access to the properties for the given runtime id.

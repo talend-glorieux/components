@@ -14,6 +14,7 @@ package org.talend.components.api.service.internal.spring;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,12 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
@@ -327,7 +323,7 @@ public class ComponentServiceSpring implements ComponentService {
     public RedirectView setupComponentRuntimeFromRestAPI(
             @ApiParam(name = "name", value = "Name of the component") @PathVariable(value = "name") String name,
             @ApiParam(name = "type", value = "Target component type, e.g. source, sink...") @PathVariable(value = "type") String type,
-            @ApiParam(name = "properties", value = "Properties to setup the component.") @RequestBody Properties properties) {
+            @ApiParam(name = "properties", value = "Properties to setup the component.") @RequestBody ComponentProperties properties) {
 
         LOGGER.debug("setting up runtime for component {} -> {} with {} properties", name, type, properties.getProperties().size());
 
@@ -339,8 +335,26 @@ public class ComponentServiceSpring implements ComponentService {
 
 
     @Override
-    public String setupComponentRuntime(String name, String type, Properties properties) {
+    public String setupComponentRuntime(String name, String type, ComponentProperties properties) {
         return componentServiceDelegate.setupComponentRuntime(name, type, properties);
+    }
+
+    @RequestMapping(value = BASE_PATH + "/components/{name}/{type}/{id}", method = RequestMethod.GET)
+    @ApiOperation(value = "Execute the 'source' runtime and return its content within the http response body", notes = "return the runtime content.")
+    public void readRuntimeInputFromRest(
+            @ApiParam(name = "name", value = "Name of the component") @PathVariable(value = "name") String name,
+            @ApiParam(name = "type", value = "Target component type, e.g. source, sink...") @PathVariable(value = "type") String type,
+            @ApiParam(name = "id", value = "The runtime id") @PathVariable(value = "id") String id,
+            OutputStream response) {
+
+        LOGGER.debug("execute runtime {} - {} - {}", name, type, id);
+        readRuntimeInput(name, type, id, response);
+    }
+
+
+    @Override
+    public void readRuntimeInput(String name, String type, String id, OutputStream output) {
+        componentServiceDelegate.readRuntimeInput(name, type, id, output);
     }
 
 
