@@ -192,5 +192,26 @@ public abstract class AbstractComponentDefinition extends AbstractTopLevelDefini
         }
         return namedThings;
     }
+    
+    /**
+     * Types (availability) of Return properties
+     * This type means in what point of Job execution Return variable is available.
+     * AFTER variable is available after all records are processed in current flow
+     * FLOW variable is available after each record is processed in current flow
+     */
+    protected static enum ReturnType {
+        AFTER,
+        FLOW
+    }
+    
+    /**
+     * Sets {@link ReturnType} of Return property.
+     * 
+     * @param property Return property, which type to be set
+     * @param type {@link ReturnType}
+     */
+    protected static void setReturnType(Property<?> property, ReturnType type) {
+        property.setTaggedValue("AVAILABILITY", type.toString());
+    }
 
 }
