@@ -30,3 +30,10 @@ Here is the workflow for pull requests.
   * **Can be merged after rework**, The review is fine but requires some minor (cosmetic) adjustments that do not need to be reviewed again. The PR is then assigned back to the PR's creator for some minor work. Once the work is done the creator can directly Merge and Squash it without the need of any review. If the creator does not have the right to do so, it will assign it back to the Reviewer after rework so that it can be merged.
   * **Rework Required**, the review added some comments that need work to be done and another review is required after. The reviewer assigns it to the PR creator.
 7. if **Rework Required** once assigne to the PR creator, he/she has to make the required changes, then assign it back to the initial Reviewer and set the label **Need review** again. Then back to step 5.
+
+Here are the label definitions for this workflow (label name : color code) :
+* Need review                : #fef2c0
+* Can be merged after rework : #c2e0c6
+* Can be merged              : #0e8a16
+* Reviewing                  : #fbca04
+* Rework required            : #1d76db
