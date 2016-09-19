@@ -104,6 +104,14 @@ public class DataSetWriterTest {
         Assert.assertEquals(10, resultMap.get(ComponentDefinition.RETURN_SUCCESS_RECORD_COUNT));
     }
 
+    @Test
+    public void testWriterWithNullLimit() throws IOException {
+        properties.setValue("limit", null);
+        Map<String, Object> resultMap = createAction();
+        Assert.assertEquals(15, resultMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
+        Assert.assertEquals(15, resultMap.get(ComponentDefinition.RETURN_SUCCESS_RECORD_COUNT));
+    }
+
     private Map<String, Object> createAction() throws IOException {
         properties.dataSetNameForCreateMode.setValue("mydataset");
         properties.mode.setValue(DataPrepOutputModes.Create);
