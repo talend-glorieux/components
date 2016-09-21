@@ -1,16 +1,10 @@
 package org.talend.components.snowflake;
 
-import org.talend.components.api.Constants;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.wizard.AbstractComponentWizardDefintion;
 import org.talend.components.api.wizard.ComponentWizard;
-import org.talend.components.api.wizard.ComponentWizardDefinition;
 import org.talend.components.api.wizard.WizardImageType;
 
-import aQute.bnd.annotation.component.Component;
-
-@Component(name = Constants.COMPONENT_WIZARD_BEAN_PREFIX
-        + SnowflakeTableWizardDefinition.COMPONENT_WIZARD_NAME, provide = ComponentWizardDefinition.class)
 public class SnowflakeTableWizardDefinition extends AbstractComponentWizardDefintion {
 
     public static final String COMPONENT_WIZARD_NAME = "snowflake.table"; //$NON-NLS-1$

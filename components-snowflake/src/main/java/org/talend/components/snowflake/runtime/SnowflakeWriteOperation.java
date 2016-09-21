@@ -2,13 +2,15 @@ package org.talend.components.snowflake.runtime;
 
 import java.util.Map;
 
-import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.Result;
+import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.container.RuntimeContainer;
 
 public final class SnowflakeWriteOperation implements WriteOperation<Result> {
 
-    /** Default serial version UID. */
+    /**
+     * Default serial version UID.
+     */
     private static final long serialVersionUID = 1L;
 
     private SnowflakeSink ssink;
@@ -34,7 +36,7 @@ public final class SnowflakeWriteOperation implements WriteOperation<Result> {
 
     @Override
     public SnowflakeWriter createWriter(RuntimeContainer container) {
-    	
+
         return new SnowflakeWriter(this, container);
     }
 

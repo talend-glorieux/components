@@ -1,5 +1,14 @@
 package org.talend.components.snowflake;
 
+import static org.talend.daikon.properties.presentation.Widget.widget;
+import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
+import static org.talend.daikon.properties.property.PropertyFactory.newString;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.avro.Schema;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
@@ -9,15 +18,6 @@ import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.talend.daikon.properties.presentation.Widget.widget;
-import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
-import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
 public class SnowflakeOutputProperties extends SnowflakeConnectionTableProperties {
 
@@ -87,7 +87,7 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
     }
 
     public void beforeUpsertRelationTable() {
-    	sfUpsertRelationTable.columnName.setPossibleValues(getFieldNames(table.main.schema));
+        sfUpsertRelationTable.columnName.setPossibleValues(getFieldNames(table.main.schema));
     }
 
     @Override
@@ -116,7 +116,7 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
             mainForm.addColumn(upsertKeyColumn);
         }
 
-        Form advancedForm = getForm(Form.ADVANCED); //TODO: check if this has already been defined.
+        Form advancedForm = getForm(Form.ADVANCED); // TODO: check if this has already been defined.
         advancedForm.addRow(widget(sfUpsertRelationTable).setWidgetType(Widget.TABLE_WIDGET_TYPE));
         // check
         // I18N
@@ -124,7 +124,7 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
 
     public void afterOutputAction() {
         refreshLayout(getForm(Form.MAIN));
-        refreshLayout(getForm(Form.ADVANCED)); //TODO:??
+        refreshLayout(getForm(Form.ADVANCED)); // TODO:??
     }
 
     @Override

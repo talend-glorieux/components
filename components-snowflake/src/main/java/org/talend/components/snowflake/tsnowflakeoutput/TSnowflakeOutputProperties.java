@@ -1,9 +1,7 @@
 package org.talend.components.snowflake.tsnowflakeoutput;
 
 import static org.talend.daikon.properties.presentation.Widget.widget;
-import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
-import static org.talend.daikon.properties.property.PropertyFactory.newInteger;
-import static org.talend.daikon.properties.property.PropertyFactory.newString;
+import static org.talend.daikon.properties.property.PropertyFactory.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,27 +60,23 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
             }
         });
     }
-    
+
     private void updateOutputSchemas() {
         Schema inputSchema = table.main.schema.getValue();
-        
+
         Schema.Field field = null;
-        
-        if (!extendInsert.getValue() && 
-        		retrieveInsertId.getValue() && 
-        		OutputAction.INSERT.equals(outputAction.getValue())) {
-        	
+
+        if (!extendInsert.getValue() && retrieveInsertId.getValue() && OutputAction.INSERT.equals(outputAction.getValue())) {
+
             final List<Schema.Field> additionalMainFields = new ArrayList<Schema.Field>();
-            
-            field = new Schema.Field(FIELD_SNOWFLAKE_ID, Schema.create(Schema.Type.STRING), 
-            															null, 
-            															(Object) null);
-            
+
+            field = new Schema.Field(FIELD_SNOWFLAKE_ID, Schema.create(Schema.Type.STRING), null, (Object) null);
+
             field.addProp(SchemaConstants.TALEND_IS_LOCKED, "false");
             field.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
             field.addProp(SchemaConstants.TALEND_COLUMN_DB_LENGTH, "255");
             additionalMainFields.add(field);
-            
+
             Schema mainOutputSchema = newSchema(inputSchema, "output", additionalMainFields);
             schemaFlow.schema.setValue(mainOutputSchema);
         } else {
@@ -96,21 +90,21 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
         field.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
         field.addProp(SchemaConstants.TALEND_COLUMN_DB_LENGTH, "255");
         additionalRejectFields.add(field);
-        
+
         field = new Schema.Field(FIELD_ERROR_FIELDS, Schema.create(Schema.Type.STRING), null, (Object) null);
         field.addProp(SchemaConstants.TALEND_IS_LOCKED, "false");
         field.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
         field.addProp(SchemaConstants.TALEND_COLUMN_DB_LENGTH, "255");
         additionalRejectFields.add(field);
-        
+
         field = new Schema.Field(FIELD_ERROR_MESSAGE, Schema.create(Schema.Type.STRING), null, (Object) null);
         field.addProp(SchemaConstants.TALEND_IS_LOCKED, "false");
         field.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
         field.addProp(SchemaConstants.TALEND_COLUMN_DB_LENGTH, "255");
         additionalRejectFields.add(field);
-        
+
         Schema rejectSchema = newSchema(inputSchema, "rejectOutput", additionalRejectFields);
-        
+
         schemaReject.schema.setValue(rejectSchema);
     }
 
@@ -118,12 +112,12 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
         Schema newSchema = Schema.createRecord(newSchemaName, metadataSchema.getDoc(), metadataSchema.getNamespace(),
                 metadataSchema.isError());
 
-        //Deep Copy
+        // Deep Copy
         List<Schema.Field> copyFieldList = new ArrayList<>();
         for (Schema.Field se : metadataSchema.getFields()) {
             Schema.Field field = new Schema.Field(se.name(), se.schema(), se.doc(), se.defaultVal(), se.order());
             field.getObjectProps().putAll(se.getObjectProps());
-            for (Map.Entry<String,Object> entry : se.getObjectProps().entrySet()) {
+            for (Map.Entry<String, Object> entry : se.getObjectProps().entrySet()) {
                 field.addProp(entry.getKey(), entry.getValue());
             }
             copyFieldList.add(field);
@@ -132,7 +126,7 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
         copyFieldList.addAll(moreFields);
 
         newSchema.setFields(copyFieldList);
-        for (Map.Entry<String,Object> entry : metadataSchema.getObjectProps().entrySet()) {
+        for (Map.Entry<String, Object> entry : metadataSchema.getObjectProps().entrySet()) {
             newSchema.addProp(entry.getKey(), entry.getValue());
         }
 

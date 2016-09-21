@@ -26,7 +26,7 @@ public class SnowflakeTableWizard extends ComponentWizard {
     }
 
     public void setupProperties(SnowflakeConnectionProperties cProps) {
-    	tProps.setConnection(cProps);
+        tProps.setConnection(cProps);
     }
 
 }

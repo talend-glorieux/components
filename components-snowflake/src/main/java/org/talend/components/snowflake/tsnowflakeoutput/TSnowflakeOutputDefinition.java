@@ -1,24 +1,24 @@
 package org.talend.components.snowflake.tsnowflakeoutput;
 
-import org.talend.components.api.Constants;
-import org.talend.components.api.component.ComponentDefinition;
-import org.talend.components.api.component.OutputComponentDefinition;
-import org.talend.components.api.component.runtime.Sink;
+import java.util.EnumSet;
+import java.util.Set;
+
+import org.talend.components.api.component.ConnectorTopology;
+import org.talend.components.api.component.runtime.DependenciesReader;
+import org.talend.components.api.component.runtime.RuntimeInfo;
+import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeDefinition;
 import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.components.snowflake.runtime.SnowflakeSink;
+import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.property.Property;
-
-import aQute.bnd.annotation.component.Component;
 
 /**
  * Component that can connect to a snowflake system and put some data into it.
  */
 
-@Component(name = Constants.COMPONENT_BEAN_PREFIX
-        + TSnowflakeOutputDefinition.COMPONENT_NAME, provide = ComponentDefinition.class)
-public class TSnowflakeOutputDefinition extends SnowflakeDefinition implements OutputComponentDefinition {
+public class TSnowflakeOutputDefinition extends SnowflakeDefinition {
 
     public static final String COMPONENT_NAME = "tSnowflakeOutput"; //$NON-NLS-1$
 
@@ -55,15 +55,23 @@ public class TSnowflakeOutputDefinition extends SnowflakeDefinition implements O
 
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { RETURN_ERROR_MESSAGE_PROP, 
-				        		RETURN_TOTAL_RECORD_COUNT_PROP, 
-				        		RETURN_SUCCESS_RECORD_COUNT_PROP,
-				                RETURN_REJECT_RECORD_COUNT_PROP };
+        return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_TOTAL_RECORD_COUNT_PROP, RETURN_SUCCESS_RECORD_COUNT_PROP,
+                RETURN_REJECT_RECORD_COUNT_PROP };
     }
 
     @Override
-    public Sink getRuntime() {
-        return new SnowflakeSink();
+    public RuntimeInfo getRuntimeInfo(Properties properties, ConnectorTopology componentType) {
+        if (componentType == ConnectorTopology.INCOMING || componentType == ConnectorTopology.INCOMING_AND_OUTGOING) {
+            return new SimpleRuntimeInfo(this.getClass().getClassLoader(),
+                    DependenciesReader.computeDependenciesFilePath(getMavenGroupId(), getMavenArtifactId()),
+                    SnowflakeSink.class.getCanonicalName());
+        } else {
+            return null;
+        }
     }
 
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.INCOMING, ConnectorTopology.INCOMING_AND_OUTGOING);
+    }
 }

@@ -5,10 +5,10 @@ import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
-import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.component.runtime.Result;
+import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputProperties;
 import org.talend.daikon.avro.AvroUtils;
@@ -19,40 +19,40 @@ import org.talend.daikon.avro.converter.IndexedRecordConverter;
  */
 public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
 
-	private transient SnowflakeNativeConnection connection;
-	
-	private transient IndexedRecordConverter<?, IndexedRecord> factory;
-	
-	protected transient Schema querySchema;
-	
-	protected SnowflakeConnectionTableProperties properties; 
-	
-	protected int dataCount;
+    private transient SnowflakeNativeConnection connection;
+
+    private transient IndexedRecordConverter<?, IndexedRecord> factory;
+
+    protected transient Schema querySchema;
+
+    protected SnowflakeConnectionTableProperties properties;
+
+    protected int dataCount;
 
     private RuntimeContainer container;
 
     public SnowflakeReader(RuntimeContainer container, BoundedSource source) {
-    	super(source);
+        super(source);
         this.container = container;
     }
 
     protected SnowflakeNativeConnection getConnection() throws IOException {
-    	if (null == connection) {
-    		connection = ((SnowflakeSource) getCurrentSource()).connect(container);
-    	}
-    	return connection;
+        if (null == connection) {
+            connection = ((SnowflakeSource) getCurrentSource()).connect(container);
+        }
+        return connection;
     }
-    
+
     protected IndexedRecordConverter<?, IndexedRecord> getFactory() throws IOException {
-    	if (null == factory) {
-    		factory = new SnowflakeResultSetAdapterFactory();
-    		factory.setSchema(getSchema());
-    	}
-    	return factory;
+        if (null == factory) {
+            factory = new SnowflakeResultSetAdapterFactory();
+            factory.setSchema(getSchema());
+        }
+        return factory;
     }
-    
+
     protected Schema getSchema() throws IOException {
-    	if (querySchema == null) {
+        if (querySchema == null) {
             querySchema = properties.table.main.schema.getValue();
             if (AvroUtils.isIncludeAllFields(querySchema)) {
                 String tableName = null;
@@ -61,14 +61,14 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
                 }
                 querySchema = getCurrentSource().getEndpointSchema(container, tableName);
             }
-    	}
+        }
         return querySchema;
     }
 
     protected String getQueryString(SnowflakeConnectionTableProperties properties) throws IOException {
         String condition = null;
         if (properties instanceof TSnowflakeInputProperties) {
-        	TSnowflakeInputProperties inProperties = (TSnowflakeInputProperties) properties;
+            TSnowflakeInputProperties inProperties = (TSnowflakeInputProperties) properties;
             if (inProperties.manualQuery.getValue()) {
                 return inProperties.query.getStringValue();
             } else {
@@ -93,34 +93,37 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
         return sb.toString();
     }
 
-/*    @Override
-    public boolean start() throws IOException {
-        started = true;
-        LOGGER.debug("open: " + filename); //$NON-NLS-1$
-        reader = new BufferedReader(new FileReader(filename));
-        current = reader.readLine();
-        return current != null;
-    }
-
-    @Override
-    public boolean advance() throws IOException {
-        current = reader.readLine();
-        return current != null;
-    }
-
-    @Override
-    public String getCurrent() throws NoSuchElementException {
-        if (!started) {
-            throw new NoSuchElementException();
-        }
-        return current;
-    }
-*/
+    /*
+     * @Override
+     * public boolean start() throws IOException {
+     * started = true;
+     * LOGGER.debug("open: " + filename); //$NON-NLS-1$
+     * reader = new BufferedReader(new FileReader(filename));
+     * current = reader.readLine();
+     * return current != null;
+     * }
+     * 
+     * @Override
+     * public boolean advance() throws IOException {
+     * current = reader.readLine();
+     * return current != null;
+     * }
+     * 
+     * @Override
+     * public String getCurrent() throws NoSuchElementException {
+     * if (!started) {
+     * throw new NoSuchElementException();
+     * }
+     * return current;
+     * }
+     */
     @Override
     public void close() throws IOException {
-        /*reader.close();
-        LOGGER.debug("close: " + filename); //$NON-NLS-1$
-*/    }
+        /*
+         * reader.close();
+         * LOGGER.debug("close: " + filename); //$NON-NLS-1$
+         */
+    }
 
     @Override
     public Map<String, Object> getReturnValues() {

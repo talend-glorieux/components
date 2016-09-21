@@ -13,13 +13,13 @@ import org.talend.daikon.properties.property.Property;
 public class SnowflakeUpsertRelationTable extends ComponentPropertiesImpl {
 
     /**
-     * 
+     *
      */
     private static final TypeLiteral<List<String>> LIST_STRING_TYPE = new TypeLiteral<List<String>>() {// empty
     };
 
     /**
-     * 
+     *
      */
     private static final TypeLiteral<List<Boolean>> LIST_BOOLEAN_TYPE = new TypeLiteral<List<Boolean>>() {// empty
     };
@@ -78,7 +78,7 @@ public class SnowflakeUpsertRelationTable extends ComponentPropertiesImpl {
 
     /**
      * Getter for usePolymorphic.
-     * 
+     *
      * @return the usePolymorphic
      */
     public boolean isUsePolymorphic() {
@@ -87,7 +87,7 @@ public class SnowflakeUpsertRelationTable extends ComponentPropertiesImpl {
 
     /**
      * Sets the usePolymorphic.
-     * 
+     *
      * @param usePolymorphic the usePolymorphic to set
      */
     public void setUsePolymorphic(boolean usePolymorphic) {

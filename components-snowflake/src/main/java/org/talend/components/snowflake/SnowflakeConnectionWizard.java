@@ -21,8 +21,7 @@ public class SnowflakeConnectionWizard extends ComponentWizard {
         cProps.init();
         addForm(cProps.getForm(SnowflakeConnectionProperties.FORM_WIZARD));
 
-        tProps = new SnowflakeTableListProperties("tProps").setConnection(cProps)
-                .setRepositoryLocation(getRepositoryLocation());
+        tProps = new SnowflakeTableListProperties("tProps").setConnection(cProps).setRepositoryLocation(getRepositoryLocation());
         tProps.init();
         addForm(tProps.getForm(Form.MAIN));
     }

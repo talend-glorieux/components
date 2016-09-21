@@ -11,7 +11,9 @@ import org.talend.daikon.properties.ValidationResult.Result;
 
 public class SnowflakeSink extends SnowflakeSourceOrSink implements Sink {
 
-    /** Default serial version UID. */
+    /**
+     * Default serial version UID.
+     */
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(SnowflakeSink.class);

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>components-parent</artifactId>
         <version>0.13.1</version>
-		<relativePath>../components-parent/pom.xml</relativePath>
+        <relativePath>../components-parent/pom.xml</relativePath>
     </parent>
 
     <name>Components - Snowflake</name>
-	<!-- <groupId>org.talend.components</groupId>-->
+    <!-- <groupId>org.talend.components</groupId>-->
     <artifactId>components-snowflake</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
-	<repositories>
+    <repositories>
         <repository>
             <id>snapshots</id>
             <url>http://newbuild.talend.com:8081/nexus/content/repositories/TalendOpenSourceSnapshot/</url>
@@ -25,21 +26,21 @@
         </repository>
     </repositories>
     <dependencies>
-		<dependency>
-		    <groupId>com.snowflake</groupId>
-		    <artifactId>jdbc-driver</artifactId>
-		    <version>2.7.98</version>
-		</dependency>
+        <dependency>
+            <groupId>com.snowflake</groupId>
+            <artifactId>jdbc-driver</artifactId>
+            <version>2.7.98</version>
+        </dependency>
 
         <!--
         mvn install:install-file -DgroupId=com.snowflake -DartifactId=jdbc-driver -Dversion=2.7.98 -Dpackaging=jar -Dfile=/Users/fupton/Downloads/snowflake_jdbc.jar
         -->
 
-		<!-- APIs for all Components -->
+        <!-- APIs for all Components -->
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>components-api</artifactId>
-            <version>0.13.1</version>
+            <version>0.15.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>biz.aQute.bnd</groupId>
@@ -48,22 +49,22 @@
 
         <!-- Shared component properties such as Use/Password or Schema -->
         <dependency>
-          <groupId>org.talend.components</groupId>
-          <artifactId>components-common</artifactId>
-          <version>0.13.1</version>
+            <groupId>org.talend.components</groupId>
+            <artifactId>components-common</artifactId>
+            <version>0.15.0-SNAPSHOT</version>
         </dependency>
-        
+
         <!-- Jar containing Test utils methods -->
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>components-api-service</artifactId>
-            <version>0.13.1</version>
+            <version>0.15.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>components-api-service</artifactId>
-            <version>0.13.1</version>
+            <version>0.15.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -96,8 +97,10 @@
                             <instructions>
                                 <Bundle-SymbolicName>org.talend.components.snowflake.lib</Bundle-SymbolicName>
                                 <Bundle-Name>${project.name} lib</Bundle-Name>
-                                <Include-Resource>{maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt</Include-Resource>
-                                <Service-Component>*</Service-Component>                                
+                                <Include-Resource>
+                                    {maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt
+                                </Include-Resource>
+                                <Service-Component>*</Service-Component>
                                 <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
                             </instructions>
                         </configuration>
@@ -110,9 +113,11 @@
                         </goals>
                         <configuration>
                             <classifier>tests</classifier>
-                            <outputDirectory>unexisting_ouput_directory_to_avoid_classes_to_be_embedded</outputDirectory>
+                            <outputDirectory>unexisting_ouput_directory_to_avoid_classes_to_be_embedded
+                            </outputDirectory>
                             <instructions>
-                                <Import-Package>!*internal,org.talend*,org.slf4j*,javax.xml.namespace,org.junit*</Import-Package>
+                                <Import-Package>!*internal,org.talend*,org.slf4j*,javax.xml.namespace,org.junit*
+                                </Import-Package>
                                 <Bundle-SymbolicName>org.talend.components.snowflake.test</Bundle-SymbolicName>
                                 <Bundle-Name>Test Fragment for ${project.name}</Bundle-Name>
                                 <Fragment-Host>org.talend.components.snowflake</Fragment-Host>
@@ -136,8 +141,11 @@
                                 <Bundle-SymbolicName>org.talend.components.snowflake</Bundle-SymbolicName>
                                 <Service-Component>*</Service-Component>
                                 <Import-Package>*,aQute.bnd.annotation.component</Import-Package>
-                                <Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!components*</Embed-Dependency>
-                                <Include-Resource>{maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt</Include-Resource>
+                                <Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!components*
+                                </Embed-Dependency>
+                                <Include-Resource>
+                                    {maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt
+                                </Include-Resource>
                                 <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
                             </instructions>
                         </configuration>

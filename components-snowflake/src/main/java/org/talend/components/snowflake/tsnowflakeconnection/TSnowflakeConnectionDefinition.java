@@ -1,20 +1,20 @@
 package org.talend.components.snowflake.tsnowflakeconnection;
 
-import org.talend.components.api.Constants;
-import org.talend.components.api.component.ComponentDefinition;
-import org.talend.components.api.component.EndpointComponentDefinition;
-import org.talend.components.api.component.runtime.SourceOrSink;
+import java.util.EnumSet;
+import java.util.Set;
+
+import org.talend.components.api.component.ConnectorTopology;
+import org.talend.components.api.component.runtime.DependenciesReader;
+import org.talend.components.api.component.runtime.RuntimeInfo;
+import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.SnowflakeDefinition;
 import org.talend.components.snowflake.runtime.SnowflakeSourceOrSink;
+import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.property.Property;
 
-import aQute.bnd.annotation.component.Component;
-
-@Component(name = Constants.COMPONENT_BEAN_PREFIX
-        + TSnowflakeConnectionDefinition.COMPONENT_NAME, provide = ComponentDefinition.class)
-public class TSnowflakeConnectionDefinition extends SnowflakeDefinition implements EndpointComponentDefinition{
+public class TSnowflakeConnectionDefinition extends SnowflakeDefinition {
 
     public static final String COMPONENT_NAME = "tSnowflakeConnection"; //$NON-NLS-1$
 
@@ -38,8 +38,19 @@ public class TSnowflakeConnectionDefinition extends SnowflakeDefinition implemen
     }
 
     @Override
-    public SourceOrSink getRuntime() {
-        return new SnowflakeSourceOrSink();
+    public RuntimeInfo getRuntimeInfo(Properties properties, ConnectorTopology componentType) {
+        if (componentType == ConnectorTopology.NONE) {
+            return new SimpleRuntimeInfo(this.getClass().getClassLoader(),
+                    DependenciesReader.computeDependenciesFilePath(getMavenGroupId(), getMavenArtifactId()),
+                    SnowflakeSourceOrSink.class.getCanonicalName());
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.NONE);
     }
 
 }

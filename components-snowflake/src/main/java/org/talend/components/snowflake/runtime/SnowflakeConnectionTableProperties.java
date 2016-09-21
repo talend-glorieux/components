@@ -10,8 +10,8 @@ import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.daikon.properties.presentation.Form;
 
 public abstract class SnowflakeConnectionTableProperties extends FixedConnectorsComponentProperties
-implements SnowflakeProvideConnectionProperties {
-	
+        implements SnowflakeProvideConnectionProperties {
+
     // Collections
     //
     public SnowflakeConnectionProperties connection = new SnowflakeConnectionProperties("connection"); //$NON-NLS-1$
@@ -59,6 +59,5 @@ implements SnowflakeProvideConnectionProperties {
             connection.refreshLayout(childForm);
         }
     }
-
 
 }
