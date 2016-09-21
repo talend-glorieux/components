@@ -52,9 +52,8 @@ public class SnowflakeTest {
     }
 
     //TODO: Remove @Ignore once the classes have been re-factored
-    //@Ignore
-    //@Test
-    /*public void testSnowflakeRuntime() throws Exception {
+    @Test
+    public void testSnowflakeRuntime() throws Exception {
         SnowflakeDefinition def = (SnowflakeDefinition) getComponentService().getComponentDefinition("Snowflake");
         SnowflakeConnectionProperties props = (SnowflakeConnectionProperties) getComponentService().getComponentProperties("Snowflake");
 
@@ -85,6 +84,6 @@ public class SnowflakeTest {
         } finally {// remote the temp file
             temp.delete();
         }
-    }*/
+    }
 
 }

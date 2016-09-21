@@ -25,72 +25,15 @@
         </repository>
     </repositories>
     <dependencies>
-		<!-- <dependency>
-			<groupId>com.snowflake</groupId>
-			<artifactId>jdbc-driver</artifactId>
-			<version>1.0</version>
-		</dependency>-->
-		
 		<dependency>
 		    <groupId>com.snowflake</groupId>
-		    <artifactId>jdbc-driver-new</artifactId>
-		    <version>1.0</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/jars/jdbc-driver-new-1.0.jar</systemPath>
+		    <artifactId>jdbc-driver</artifactId>
+		    <version>2.7.98</version>
 		</dependency>
 
-		<!-- <dependency>
-		    <groupId>com.snowflake</groupId>
-		    <artifactId>snowflake-jdbc-thin</artifactId>
-		    <version>2.7.79</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/src/main/resources/snowflake-jdbc-thin-2.7.79.jar</systemPath>
-		</dependency> -->
-		
-		
-		<!--  UNICO-03-Aug-2016: First install the jar file to the local repository
-			mvn install:install-file -Dfile=path/to/snowflake-jdbc-thin-2.7.79.jar \
-			 -DpomFile=path/to/snowflake-jdbc-thin-2.7.79.pom
-		
-		<dependency>
-			<groupId>com.snowflake</groupId>
-			<artifactId>snowflake-jdbc-thin</artifactId>
-			<version>2.7.79</version>
-		</dependency> -->
-
-		<!-- Begin UNICO-03-Aug-2016: snowflake-jdbc-thin depends on jackson-databind 
-		<dependency>
-      		<artifactId>jackson-databind</artifactId>
-      		<groupId>com.fasterxml.jackson.core</groupId>
-      		<type>jar</type>
-      		<version>2.3.1</version>
-    	</dependency>
-	    <dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.3.1</version>
-	    </dependency>
-	    <dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<version>2.3.0</version>
-	    </dependency>
-	    <dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.2.6</version>
-			<type>jar</type>
-	    </dependency>
-	    <dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.2.5</version>
-			<type>jar</type>
-	    </dependency>
-	    
-	    End UNICO-03-Aug-2016: snowflake-jdbc-thin depends on jackson-databind -->
-		
-
+        <!--
+        mvn install:install-file -DgroupId=com.snowflake -DartifactId=jdbc-driver -Dversion=2.7.98 -Dpackaging=jar -Dfile=/Users/fupton/Downloads/snowflake_jdbc.jar
+        -->
 
 		<!-- APIs for all Components -->
         <dependency>
