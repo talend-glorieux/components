@@ -34,6 +34,11 @@
 			<artifactId>annotation</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.5.3</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
@@ -43,7 +48,7 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- the following dependencies may be removed once we get rid off the 
+		<!-- the following dependencies may be removed once we get rid off the
 			spring implementation and create a specific project for that. -->
 		<dependency>
 			<groupId>org.springframework</groupId>

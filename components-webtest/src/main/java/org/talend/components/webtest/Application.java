@@ -34,7 +34,7 @@ public class Application extends WebMvcConfigurerAdapter {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         super.configureMessageConverters(converters);
-        converters.add(new JsonIo2HttpMessageConverter());
+        converters.add(new JsonSchema2HttpMessageConverter());
 
     }
 
