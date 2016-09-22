@@ -25,7 +25,8 @@
 		<module>components-dataprep</module>
 		<module>components-api-full-example</module>
 		<module>components-jdbc</module>
-	</modules>
+        <module>components-kafka</module>
+    </modules>
 	<profiles>
 		<profile>
 			<id>eclipse</id>
