@@ -11,7 +11,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.SchemaBuilder;
 import org.talend.components.api.exception.ComponentException;
-import org.talend.components.jdbc.tjdbcinput.TJDBCInputProperties;
+import org.talend.components.jdbc.runtime.setting.AllSetting;
 import org.talend.daikon.avro.AvroRegistry;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
@@ -221,7 +221,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
+                    boolean trimAll = getTrimAllValue();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -394,7 +394,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
+                    boolean trimAll = getTrimAllValue();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -437,7 +437,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
+                    boolean trimAll = getTrimAllValue();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -458,7 +458,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
     abstract class JDBCConverter implements AvroConverter<ResultSet, Object> {
 
-        protected TJDBCInputProperties properties;
+        protected AllSetting setting;
 
         @Override
         public Schema getSchema() {
@@ -477,8 +477,16 @@ public class JDBCAvroRegistry extends AvroRegistry {
             throw new UnmodifiableAdapterException();
         }
 
-        public void setProperties(TJDBCInputProperties properties) {// it's a special code, not good
-            this.properties = properties;
+        public void setSetting(AllSetting setting) {// it's a special code, not good
+            this.setting = setting;
+        }
+
+        protected boolean getTrimAllValue() {
+            if (setting.getTrimStringOrCharColumns() == null) {
+                return false;
+            }
+
+            return setting.getTrimStringOrCharColumns();
         }
 
     }
