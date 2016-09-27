@@ -40,16 +40,16 @@ public class TestJsonSerialize {
     public void TestSerializationSizes() throws IOException {
         FullExampleProperties fep = new FullExampleProperties(null);
         fep.stringProp.setValue("stringProp");
-        fep.tableProp.colEnum.setValue(FullExampleProperties.TableProperties.ColEnum.FOO);
-        fep.tableProp.colString.setValue("foooo");
+        fep.commonProp.colEnum.setValue(FullExampleProperties.CommonProperties.ColEnum.FOO);
+        fep.commonProp.colString.setValue("foooo");
         String jsonioString = fep.toSerialized();
         System.out.println("jsonio:" + FileUtils.byteCountToDisplaySize(jsonioString.getBytes().length));
 
         FullExampleProperties fepCopy = Properties.Helper.fromSerializedPersistent(jsonioString,
                 FullExampleProperties.class).object;
         assertNull(fepCopy.hiddenTextProp.getValue());
-        assertEquals("foooo", fep.tableProp.colString.getValue());
-        assertEquals("foooo", fepCopy.tableProp.colString.getValue());
+        assertEquals("foooo", fep.commonProp.colString.getValue());
+        assertEquals("foooo", fepCopy.commonProp.colString.getValue());
     }
 
 }

@@ -4,9 +4,12 @@ import static org.talend.daikon.properties.presentation.Widget.*;
 import static org.talend.daikon.properties.property.PropertyFactory.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.reflect.TypeLiteral;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
@@ -29,7 +32,7 @@ public class FullExampleProperties extends ComponentPropertiesImpl {
      */
     static final String POPUP_FORM_NAME = "popup";
 
-    public static class TableProperties extends PropertiesImpl {
+    public static class CommonProperties extends PropertiesImpl {
 
         public enum ColEnum {
             FOO,
@@ -42,10 +45,49 @@ public class FullExampleProperties extends ComponentPropertiesImpl {
 
         public final Property<Boolean> colBoolean = newBoolean("colBoolean");
 
-        public TableProperties(String name) {
+        public CommonProperties(String name) {
             super(name);
         }
 
+        @Override
+        public void setupLayout() {
+            Form mainForm = new Form(this, Form.MAIN);
+            mainForm.addRow(colString);
+            mainForm.addRow(colEnum);
+            mainForm.addRow(colBoolean);
+        }
+    }
+
+    public static class TableProperties extends PropertiesImpl {
+        private static final TypeLiteral<List<String>> LIST_STRING_TYPE = new TypeLiteral<List<String>>() {// empty
+        };
+        public enum ColEnum {
+            FOO,
+            BAR
+        }
+        public static final TypeLiteral<List<ColEnum>> LIST_ENUM_TYPE = new TypeLiteral<List<ColEnum>>() {// empty
+        };
+
+        private static final TypeLiteral<List<Boolean>> LIST_BOOLEAN_TYPE = new TypeLiteral<List<Boolean>>() {// empty
+        };
+
+        public Property<List<String>> colListString = newProperty(LIST_STRING_TYPE, "colListString");
+
+        public Property<List<ColEnum>> colListEnum = newProperty(LIST_ENUM_TYPE, "colListEnum");
+
+        public Property<List<Boolean>> colListBoolean = newProperty(LIST_BOOLEAN_TYPE, "colListBoolean");
+        @Override
+        public void setupLayout() {
+            super.setupLayout();
+            Form mainForm = new Form(this, Form.MAIN);
+            mainForm.addColumn(colListString);
+            mainForm.addColumn(colListEnum);
+            mainForm.addColumn(colListBoolean);
+        }
+
+        public TableProperties(String name) {
+            super(name);
+        }
     }
 
     /** use the default widget for this String type */
@@ -65,11 +107,23 @@ public class FullExampleProperties extends ComponentPropertiesImpl {
     /** checking {@link WidgetType#TABLE} */
     public final TableProperties tableProp = new TableProperties("tableProp");
 
+    /** reuse common properties */
+    public final CommonProperties commonProp = new CommonProperties("commonProp");
+
     /** checking {@link WidgetType#FILE} */
     public final Property<String> filepathProp = newString("filepathProp");
 
     /** checking {@link WidgetType#HIDDEN_TEXT} */
     public final Property<String> hiddenTextProp = newString("hiddenTextProp");
+
+    /** use the default widget for this Date type */
+    public final Property<Integer> integerProp = newInteger("integerProp").setRequired();
+
+    /** use the default widget for this Integer type */
+    public final Property<Date> dateProp = newDate("dateProp").setRequired();
+
+    /** checking {@link WidgetType#TEXT_AREA} */
+    public final Property<String> textareaProp = newString("textareaProp");
 
     /**
      * uses 2 widgets, {@link WidgetType#SCHEMA_EDITOR} in the Main form and {@link WidgetType#SCHEMA_REFERENCE} on the REFERENCE
@@ -113,9 +167,14 @@ public class FullExampleProperties extends ComponentPropertiesImpl {
         mainForm.addRow(widget(showNewForm).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
         Form popUpForm = new Form(this, POPUP_FORM_NAME);
         showNewForm.setFormtoShow(popUpForm);
-        mainForm.addColumn(widget(tableProp).setWidgetType(Widget.TABLE_WIDGET_TYPE));
+        mainForm.addColumn(commonProp);
         mainForm.addColumn(widget(hiddenTextProp).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
         mainForm.addColumn(widget(filepathProp).setWidgetType(Widget.FILE_WIDGET_TYPE));
+        mainForm.addRow(integerProp);
+        mainForm.addRow(dateProp);
+        mainForm.addRow(widget(tableProp).setWidgetType(Widget.TABLE_WIDGET_TYPE));
+        Form advancedForm = new Form(this, Form.ADVANCED);
+        advancedForm.addRow(widget(textareaProp).setWidgetType(Widget.TEXT_AREA_WIDGET_TYPE));
     }
 
     @Override
