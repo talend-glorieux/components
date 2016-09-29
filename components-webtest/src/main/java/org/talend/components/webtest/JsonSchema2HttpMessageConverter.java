@@ -1,7 +1,9 @@
 package org.talend.components.webtest;
 
-import com.cedarsoftware.util.io.JsonReader;
-import com.cedarsoftware.util.io.JsonWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -11,18 +13,15 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.talend.components.runtimeservice.util.json.JSONUtil;
 import org.talend.daikon.properties.Properties;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
 
 public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     /**
-     * Sets following mime type headers:
-     * application/json;charset=UTF-8
-     * application/*+json;charset=UTF-8
+     * Sets following mime type headers: application/json;charset=UTF-8 application/*+json;charset=UTF-8
      */
     public JsonSchema2HttpMessageConverter() {
         super(new MediaType("application", "json", DEFAULT_CHARSET), new MediaType("application", "*+json", DEFAULT_CHARSET));
@@ -38,9 +37,9 @@ public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverte
     protected void writeInternal(Object t, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputMessage.getBody());
         String objectToJson = null;
-        if(Properties.class.isAssignableFrom(t.getClass())){
-            objectToJson = JSONUtil.toJson((Properties)t, true);
-        }else {
+        if (Properties.class.isAssignableFrom(t.getClass())) {
+            objectToJson = JSONUtil.toJson((Properties) t, true);
+        } else {
             objectToJson = JsonWriter.objectToJson(t);
         }
 
@@ -51,7 +50,7 @@ public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverte
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * This implementation doesn't and shouldn't support swagger object.
      */
     @Override
@@ -71,13 +70,13 @@ public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverte
     @Override
     protected Object readInternal(Class<? extends Object> clazz, HttpInputMessage inputMessage)
             throws IOException, HttpMessageNotReadableException {
-        if(Properties.class.isAssignableFrom(clazz)){
+        if (Properties.class.isAssignableFrom(clazz)) {
             try {
                 return JSONUtil.fromJson(inputMessage.getBody());
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
             }
-        }else {
+        } else {
             return JsonReader.jsonToJava(inputMessage.getBody(), null);
         }
     }

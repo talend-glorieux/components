@@ -59,16 +59,16 @@ public class FullExampleProperties extends ComponentPropertiesImpl {
     }
 
     public static class TableProperties extends PropertiesImpl {
-        private static final TypeLiteral<List<String>> LIST_STRING_TYPE = new TypeLiteral<List<String>>() {// empty
+        private static final TypeLiteral<List<String>> LIST_STRING_TYPE = new TypeLiteral<List<String>>() {
         };
         public enum ColEnum {
             FOO,
             BAR
         }
-        public static final TypeLiteral<List<ColEnum>> LIST_ENUM_TYPE = new TypeLiteral<List<ColEnum>>() {// empty
+        public static final TypeLiteral<List<ColEnum>> LIST_ENUM_TYPE = new TypeLiteral<List<ColEnum>>() {
         };
 
-        private static final TypeLiteral<List<Boolean>> LIST_BOOLEAN_TYPE = new TypeLiteral<List<Boolean>>() {// empty
+        private static final TypeLiteral<List<Boolean>> LIST_BOOLEAN_TYPE = new TypeLiteral<List<Boolean>>() {
         };
 
         public Property<List<String>> colListString = newProperty(LIST_STRING_TYPE, "colListString");

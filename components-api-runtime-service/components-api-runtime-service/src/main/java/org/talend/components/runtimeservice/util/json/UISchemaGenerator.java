@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.daikon.NamedThing;
+import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.Properties;
-import org.talend.daikon.properties.PropertiesImpl;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
@@ -52,7 +52,7 @@ public class UISchemaGenerator extends JSONBaseTool {
         List<Properties> propertiesList = listTProperties(cProperties);
         for (JSONWidget jsonWidget : jsonWidgets) {
             NamedThing content = jsonWidget.getContent();
-            if (propertyList.contains(content)) {
+            if (propertyList.contains(content) || content instanceof PresentationItem) {
                 ObjectNode jsonNodes = processTWidget(jsonWidget.getWidget(), createSchema());
                 if (jsonNodes.size() != 0) {
                     schema.set(jsonWidget.getName(), jsonNodes);
@@ -119,6 +119,27 @@ public class UISchemaGenerator extends JSONBaseTool {
                     schema.put(UISchemaMeta.TAG_CUSTOM_WIDGET, widgetType);
                 }
             }
+            schema = addTriggerTWidget(widget, schema);
+        }
+        return schema;
+    }
+
+    private ObjectNode addTriggerTWidget(Widget widget, ObjectNode schema) {
+        ArrayNode jsonNodes = schema.putArray(UISchemaMeta.TAG_TRIGGER);
+        if(widget.isCallAfter()){
+            jsonNodes.add(UISchemaMeta.TRIGGER_AFTER);
+        }
+        if(widget.isCallBeforeActivate()){
+            jsonNodes.add(UISchemaMeta.TRIGGER_BEFORE_ACTIVATE);
+        }
+        if(widget.isCallBeforePresent()){
+            jsonNodes.add(UISchemaMeta.TRIGGER_BEFORE_PRESENT);
+        }
+        if(widget.isCallValidate()){
+            jsonNodes.add(UISchemaMeta.TRIGGER_VALIDATE);
+        }
+        if(jsonNodes.size() == 0){
+            schema.remove(UISchemaMeta.TAG_TRIGGER);
         }
         return schema;
     }
@@ -129,7 +150,7 @@ public class UISchemaGenerator extends JSONBaseTool {
             for (Widget widget : form.getWidgets()) {
                 NamedThing content = widget.getContent();
                 if ((content instanceof Property || content instanceof Properties || content instanceof
-                        Form) && !(content instanceof ComponentReferenceProperties)) {
+                        Form || content instanceof PresentationItem) && !(content instanceof ComponentReferenceProperties)) {
                     results.add(new JSONWidget(widget, form));
                 }
             }

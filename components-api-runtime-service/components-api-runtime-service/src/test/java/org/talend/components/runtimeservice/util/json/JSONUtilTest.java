@@ -3,7 +3,6 @@ package org.talend.components.runtimeservice.util.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-import org.talend.components.fullexample.FullExampleProperties;
 import org.talend.daikon.properties.Properties;
 
 import java.io.IOException;
@@ -12,13 +11,12 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.talend.components.fullexample.FullExampleProperties.TableProperties.LIST_ENUM_TYPE;
 
 public class JSONUtilTest {
 
     @Test
     public void test() throws URISyntaxException, IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        String jsonStr = readJson("FullExampleProperties.json");
+        String jsonStr = readJson("FullExampleProperties.json").trim();
 
         Properties properties = JSONUtil.fromJson(jsonStr);
         properties.init();

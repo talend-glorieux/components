@@ -29,7 +29,7 @@ public class JSONResolver extends JSONBaseTool {
             jsonSchema = jsonSchema.get(JSONSchemaMeta.TAG_PROPERTIES);
             Class<?> aClass = Class.forName(classNameNode.textValue());
             if (Properties.class.isAssignableFrom(aClass)) {
-                if(cProperties == null) {
+                if (cProperties == null) {
                     Constructor<?> declaredConstructor = aClass.getDeclaredConstructor(String.class);
                     cProperties = (Properties) declaredConstructor.newInstance
                             (propertiesName);
@@ -51,7 +51,7 @@ public class JSONResolver extends JSONBaseTool {
                         String fieldName = declaredField.getName();
                         if (fieldName.equals(properties.getName())) {
                             Properties finalProps = null;
-                            if(Modifier.isFinal(declaredField.getModifiers())) {
+                            if (Modifier.isFinal(declaredField.getModifiers())) {
                                 finalProps = cProperties.getProperties(fieldName);
                                 resolveJson(jsonSchema.get(fieldName)
                                         .toString(), jsonData.get(fieldName).toString(), fieldName, finalProps);
