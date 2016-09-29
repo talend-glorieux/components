@@ -30,7 +30,7 @@ import org.talend.daikon.properties.ValidationResult;
  * serialized in the main program and then deserialized on remote worker machines.
  *
  */
-public interface ComponentRuntime extends Serializable {
+public interface RuntimableRuntime extends Serializable {
 
     /**
      * Gets the ComponentProperties associated with this runtime class in order to configure it. This class also checks
