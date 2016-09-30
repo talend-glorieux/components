@@ -21,10 +21,7 @@ import org.talend.components.api.container.RuntimeContainer;
 public interface DatasetRuntime extends RuntimableRuntime {
 
     /**
-     * Return the schema associated with the specified datasetPath, or null if none.
-     *
-     * @param datasetPath, Works in a similar manner to
-     *            {@link Datastore#getPossibleDatasetNames(RuntimeContainer, String)}.
+     * Return the schema associated with the this dataset, or null if none found.
      */
-    Schema getEndpointSchema(RuntimeContainer container, String datasetPath) throws IOException;
+    Schema getEndpointSchema(RuntimeContainer container) throws IOException;
 }
