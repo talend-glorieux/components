@@ -14,6 +14,14 @@
     <name>Components - Kafka Definition</name>
     <artifactId>kafka-definition</artifactId>
     <packaging>bundle</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- specifies that the system uses Java 8 by default -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <dependencies>
         <!-- APIs for all Components -->
         <dependency>

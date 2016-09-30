@@ -9,8 +9,8 @@ import org.talend.daikon.properties.property.Property;
 
 import java.util.Set;
 
-public abstract class KafkaIODefinition extends AbstractComponentDefinition {
-    public KafkaIODefinition(String componentName) {
+public abstract class KafkaIOBasedDefinition extends AbstractComponentDefinition {
+    public KafkaIOBasedDefinition(String componentName) {
         super(componentName);
     }
 

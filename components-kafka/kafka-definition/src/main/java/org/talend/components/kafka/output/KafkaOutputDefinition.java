@@ -2,12 +2,12 @@ package org.talend.components.kafka.output;
 
 import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.kafka.KafkaIODefinition;
+import org.talend.components.kafka.KafkaIOBasedDefinition;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-public class KafkaOutputDefinition extends KafkaIODefinition {
+public class KafkaOutputDefinition extends KafkaIOBasedDefinition {
     public KafkaOutputDefinition(String componentName) {
         super(componentName);
     }

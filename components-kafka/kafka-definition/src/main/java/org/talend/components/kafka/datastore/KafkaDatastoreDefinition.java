@@ -6,7 +6,7 @@ import org.talend.daikon.SimpleNamedThing;
 
 public class KafkaDatastoreDefinition extends SimpleNamedThing implements DatastoreDefinition<KafkaDatastoreProperties> {
 
-    private static final String NAME = "KafkaDatastore";
+    public static final String NAME = "KafkaDatastore";
 
     public KafkaDatastoreDefinition() {
         super(NAME);

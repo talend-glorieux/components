@@ -26,8 +26,7 @@ public abstract class KafkaIOBasedProperties extends IOProperties<KafkaDatasetPr
         super.setupLayout();
 
         Form mainForm = new Form(this, Form.MAIN);
-        mainForm.addRow(dataset.getDatastoreProperties().getForm(Form.MAIN));
-        mainForm.addRow(dataset.getForm(Form.MAIN));
+        mainForm.addRow(dataset.getForm(Form.REFERENCE));
     }
 
     @Override

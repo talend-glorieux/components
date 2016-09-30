@@ -2,12 +2,14 @@ package org.talend.components.kafka.dataset;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.talend.components.api.properties.ComponentReferenceProperties;
+import org.talend.components.api.properties.ComponentReferencePropertiesEnclosing;
 import org.talend.components.common.SchemaProperties;
 import org.talend.components.common.dataset.DatasetProperties;
+import org.talend.components.kafka.datastore.KafkaDatastoreDefinition;
 import org.talend.components.kafka.datastore.KafkaDatastoreProperties;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
-import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.properties.PropertiesImpl;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
@@ -18,11 +20,16 @@ import org.talend.daikon.properties.property.PropertyFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KafkaDatasetProperties extends PropertiesImpl implements DatasetProperties<KafkaDatastoreProperties> {
+import static org.talend.daikon.properties.presentation.Widget.widget;
+
+public class KafkaDatasetProperties extends PropertiesImpl implements DatasetProperties<KafkaDatastoreProperties>, ComponentReferencePropertiesEnclosing {
 
     public KafkaDatastoreProperties datastore = new KafkaDatastoreProperties("datastore");
     public Property<String> topic = PropertyFactory.newString("topic");
     public SchemaProperties main = new SchemaProperties("main");
+
+    //use this to store dataset id for io component
+    public ComponentReferenceProperties referencedComponent = new ComponentReferenceProperties("referencedComponent", this);
 
     public KafkaDatasetProperties(String name) {
         super(name);
@@ -33,9 +40,19 @@ public class KafkaDatasetProperties extends PropertiesImpl implements DatasetPro
         super.setupLayout();
 
         Form mainForm = new Form(this, Form.MAIN);
-        mainForm.addRow(Widget.widget(topic).setWidgetType(Widget.NAME_SELECTION_AREA_WIDGET_TYPE));
+        mainForm.addRow(datastore.getForm(Form.REFERENCE));//FIXME show or not?
+        mainForm.addRow(widget(topic).setWidgetType(Widget.NAME_SELECTION_AREA_WIDGET_TYPE));
         mainForm.addRow(main.getForm(Form.MAIN));
+
+        // A form for a reference to a dataset, used in a KafkaIO for example
+        Form refForm = Form.create(this, Form.REFERENCE);
+        Widget compListWidget = widget(referencedComponent).setWidgetType(Widget.COMPONENT_REFERENCE_WIDGET_TYPE);//FIXME provide a way make the THIS_COMPONENT disable
+        referencedComponent.componentType.setValue(KafkaDatastoreDefinition.NAME);
+        refForm.addRow(compListWidget);
+        refForm.addRow(mainForm);
     }
+
+
 
     public ValidationResult beforeTopic() {
         //FIXME(bchen) replace by kafkaSourceOrSink.getTopics
@@ -64,5 +81,10 @@ public class KafkaDatasetProperties extends PropertiesImpl implements DatasetPro
     @Override
     public KafkaDatastoreProperties getDatastoreProperties() {
         return datastore;
+    }
+
+    @Override
+    public void afterReferencedComponent() {
+
     }
 }
