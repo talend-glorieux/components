@@ -14,6 +14,7 @@
 package org.talend.components.api.component.runtime;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * A Writer writes a bundle of elements from a PCollection to a sink. {@link Writer#open} is called before writing
@@ -46,6 +47,18 @@ public interface Writer<WriteT> {
      * Called for each value in the bundle.
      */
     void write(Object object) throws IOException;
+    
+    /**
+     * Returns the value of the data item that was written by the last {@link #write} call. The returned value
+     * must be effectively immutable and remain valid
+     * indefinitely.
+     *
+     * <p>
+     * Multiple calls to this method without an intervening call to {@link #write} should return the same result.
+     *
+     * @throws java.util.NoSuchElementException if {@link #write} was never called, or if
+     */
+    Object getCurrent() throws NoSuchElementException;
 
     /**
      * Finishes writing the bundle. Closes any resources used for writing the bundle.
