@@ -10,21 +10,21 @@ import java.io.InputStream;
 /**
  * Util for round trip between ComponentProperties and JSONSchema/UISchema/JSONData
  */
-public class JSONUtil {
+public class JsonUtil {
     static final String TAG_JSON_SCHEMA = "jsonschema";
     static final String TAG_JSON_UI = "uischema";
     static final String TAG_JSON_DATA = "jsondata";
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final JSONSchemaGenerator jsonSchemaGenerator = new JSONSchemaGenerator();
-    private static final UISchemaGenerator uiSchemaGenerator = new UISchemaGenerator();
-    private static final JSONDataGenerator jsonDataGenerator = new JSONDataGenerator();
-    private static final JSONResolver resolver = new JSONResolver();
+    private static final JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
+    private static final UiSchemaGenerator uiSchemaGenerator = new UiSchemaGenerator();
+    private static final JsonDataGenerator jsonDataGenerator = new JsonDataGenerator();
+    private static final JsonResolver resolver = new JsonResolver();
 
     public static Properties fromJson(String jsonStr) {
         try {
             JsonNode jsonNode = mapper.readTree(jsonStr);
             Properties root = resolver.resolveJson(jsonNode.get(TAG_JSON_SCHEMA).toString(),
-                    jsonNode.get(TAG_JSON_DATA).toString(), "root");
+                    jsonNode.get(TAG_JSON_DATA).toString());
             return root;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -35,7 +35,7 @@ public class JSONUtil {
         try {
             JsonNode jsonNode = mapper.readTree(jsonIS);
             Properties root = resolver.resolveJson(jsonNode.get(TAG_JSON_SCHEMA).toString(),
-                    jsonNode.get(TAG_JSON_DATA).toString(), "root");
+                    jsonNode.get(TAG_JSON_DATA).toString());
 
             return root;
         } catch (Exception e) {

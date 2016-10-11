@@ -1,5 +1,6 @@
 package org.talend.components.runtimeservice.util.json;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.avro.Schema;
 import org.talend.daikon.properties.Properties;
@@ -7,20 +8,24 @@ import org.talend.daikon.properties.property.Property;
 
 import java.util.List;
 
-public class JSONDataGenerator extends JSONBaseTool {
+import static org.talend.components.runtimeservice.util.json.JsonBaseTool.findClass;
+import static org.talend.components.runtimeservice.util.json.JsonBaseTool.getSubProperties;
+import static org.talend.components.runtimeservice.util.json.JsonBaseTool.getSubProperty;
+
+public class JsonDataGenerator {
 
     protected <T extends Properties> ObjectNode genData(T properties) {
         return processTPropertiesData(properties);
     }
 
     private ObjectNode processTPropertiesData(Properties cProperties) {
-        ObjectNode rootNode = createSchema();
+        ObjectNode rootNode = JsonNodeFactory.instance.objectNode();
 
-        List<Property> propertyList = listTProperty(cProperties);
+        List<Property> propertyList = getSubProperty(cProperties);
         for (Property property : propertyList) {
             processTPropertyValue(property, rootNode);
         }
-        List<Properties> propertiesList = listTProperties(cProperties);
+        List<Properties> propertiesList = getSubProperties(cProperties);
         for (Properties properties : propertiesList) {
             String name = properties.getName();
             rootNode.set(name, processTPropertiesData(properties));

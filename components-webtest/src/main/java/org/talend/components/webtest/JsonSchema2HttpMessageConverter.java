@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.talend.components.runtimeservice.util.json.JSONUtil;
+import org.talend.components.runtimeservice.util.json.JsonUtil;
 import org.talend.daikon.properties.Properties;
 
 import com.cedarsoftware.util.io.JsonReader;
@@ -38,7 +38,7 @@ public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverte
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputMessage.getBody());
         String objectToJson = null;
         if (Properties.class.isAssignableFrom(t.getClass())) {
-            objectToJson = JSONUtil.toJson((Properties) t, true);
+            objectToJson = JsonUtil.toJson((Properties) t, true);
         } else {
             objectToJson = JsonWriter.objectToJson(t);
         }
@@ -72,7 +72,7 @@ public class JsonSchema2HttpMessageConverter extends AbstractHttpMessageConverte
             throws IOException, HttpMessageNotReadableException {
         if (Properties.class.isAssignableFrom(clazz)) {
             try {
-                return JSONUtil.fromJson(inputMessage.getBody());
+                return JsonUtil.fromJson(inputMessage.getBody());
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
             }

@@ -7,11 +7,11 @@ import org.talend.daikon.properties.presentation.Widget;
 /**
  * Wrapper of Widget
  */
-public class JSONWidget {
+public class JsonWidget {
     private Widget widget;
     private Form form;
 
-    public JSONWidget(Widget widget, Form form) {
+    public JsonWidget(Widget widget, Form form) {
         this.widget = widget;
         this.form = form;
     }
