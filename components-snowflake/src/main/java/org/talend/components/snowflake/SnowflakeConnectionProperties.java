@@ -16,26 +16,6 @@ import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-/**
- * The ComponentProperties subclass provided by a component stores the
- * configuration of a component and is used for:
- * <p>
- * <ol>
- * <li>Specifying the format and type of information (properties) that is
- * provided at design-time to configure a component for run-time,</li>
- * <li>Validating the properties of the component at design-time,</li>
- * <li>Containing the untyped values of the properties, and</li>
- * <li>All of the UI information for laying out and presenting the
- * properties to the user.</li>
- * </ol>
- * <p>
- * The SnowflakeProperties has two properties:
- * <ol>
- * <li>{code filename}, a simple property which is a String containing the
- * file path that this component will read.</li>
- * <li>{code schema}, an embedded property referring to a Schema.</li>
- * </ol>
- */
 public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         implements SnowflakeProvideConnectionProperties, ComponentReferencePropertiesEnclosing {
 
@@ -45,17 +25,6 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
 
     // Only for the wizard use
     public Property<String> name = newString("name").setRequired();
-
-    public enum Authenticator {
-        SNOWFLAKE("snowflake"),
-        OKTA("okta");
-
-        String value;
-
-        private Authenticator(String val) {
-            this.value = val;
-        }
-    }
 
     public enum Tracing {
         OFF("OFF"),
@@ -75,37 +44,23 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         }
     }
 
-    public enum PasscodeInPassword {
-        ON(true),
-        OFF(false);
-
-        boolean value;
-
-        private PasscodeInPassword(boolean val) {
-            this.value = val;
-        }
-    }
-
     // Ref: https://docs.snowflake.net/manuals/user-guide/jdbc-configure.html
     public UserPasswordProperties userPassword = new UserPasswordProperties(USERPASSWORD);
 
     public Property<String> account = newString("account").setRequired(); //$NON-NLS-1$
 
-    public Property<String> warehouse = newString("warehouse").setRequired(); //$NON-NLS-1$
 
-    public Property<String> db = newString("db").setRequired(); //$NON-NLS-1$
+    public Property<String> warehouse = newString("warehouse"); //$NON-NLS-1$
 
-    public Property<String> schema = newString("schema").setRequired(); //$NON-NLS-1$
+    public Property<String> db = newString("db"); //$NON-NLS-1$
 
-    public Property<Authenticator> authenticator = newEnum("authenticator", Authenticator.class); //$NON-NLS-1$
+    public Property<String> schemaName = newString("schemaName"); //$NON-NLS-1$
+
+
 
     public Property<String> role = newString("role"); //$NON-NLS-1$
 
     public Property<Tracing> tracing = newEnum("tracing", Tracing.class); //$NON-NLS-1$
-
-    public Property<String> passcode = newString("passcode"); //$NON-NLS-1$
-
-    public Property<PasscodeInPassword> passcodeInPassword = newEnum("passcodeInPassword", PasscodeInPassword.class); //$NON-NLS-1$
 
     // Presentation items
     public PresentationItem testConnection = new PresentationItem("testConnection", "Test connection");
@@ -125,9 +80,7 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         super.setupProperties();
         // Code for property initialization goes here
 
-        authenticator.setValue(Authenticator.SNOWFLAKE);
-        tracing.setValue(Tracing.INFO);
-        passcodeInPassword.setValue(PasscodeInPassword.OFF);
+        tracing.setValue(Tracing.OFF);
     }
 
     @Override
@@ -140,23 +93,17 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         wizardForm.addRow(account);
         wizardForm.addRow(warehouse);
         wizardForm.addRow(db);
-        wizardForm.addRow(schema);
+        wizardForm.addRow(schemaName);
         wizardForm.addRow(widget(advanced).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
         wizardForm.addColumn(widget(testConnection).setLongRunning(true).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
 
         Form mainForm = Form.create(this, Form.MAIN);
         mainForm.addRow(userPassword.getForm(Form.MAIN));
         mainForm.addRow(account);
-        mainForm.addRow(warehouse);
-        mainForm.addRow(db);
-        mainForm.addRow(schema);
 
         Form advancedForm = Form.create(this, Form.ADVANCED);
-        advancedForm.addRow(widget(authenticator).setWidgetType(Widget.ENUMERATION_WIDGET_TYPE));
         advancedForm.addRow(widget(tracing).setWidgetType(Widget.ENUMERATION_WIDGET_TYPE));
-        advancedForm.addRow(widget(passcodeInPassword).setWidgetType(Widget.ENUMERATION_WIDGET_TYPE));
         advancedForm.addRow(role);
-        advancedForm.addRow(passcode);
         advanced.setFormtoShow(advancedForm);
 
         // form.addRow(schema.getForm(Form.REFERENCE));
@@ -168,7 +115,6 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         referencedComponent.componentType.setValue(TSnowflakeConnectionDefinition.COMPONENT_NAME);
         refForm.addRow(compListWidget);
         refForm.addRow(mainForm);
-
     }
 
     @Override
@@ -189,21 +135,12 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         if (form.getName().equals(Form.MAIN) || form.getName().equals(FORM_WIZARD)) {
             if (useOtherConnection) {
                 form.getWidget(USERPASSWORD).setHidden(true);
-                // TODO: Probably need to hide the other form elements
                 form.getWidget(account.getName()).setHidden(true);
-                form.getWidget(warehouse.getName()).setHidden(true);
-                form.getWidget(db.getName()).setHidden(true);
-                form.getWidget(schema.getName()).setHidden(true);
-
             } else {
                 // Do nothing
                 form.setHidden(false);
                 form.getWidget(USERPASSWORD).setHidden(false);
                 form.getWidget(account.getName()).setHidden(false);
-                form.getWidget(warehouse.getName()).setHidden(false);
-                form.getWidget(db.getName()).setHidden(false);
-                form.getWidget(schema.getName()).setHidden(false);
-
             }
         }
 

@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
-import org.talend.components.snowflake.runtime.SnowflakeConnectionTableProperties;
+import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.property.Property;
 

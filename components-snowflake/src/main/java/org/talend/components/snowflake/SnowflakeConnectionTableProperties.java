@@ -1,4 +1,4 @@
-package org.talend.components.snowflake.runtime;
+package org.talend.components.snowflake;
 
 import org.apache.avro.Schema;
 import org.talend.components.api.component.Connector;

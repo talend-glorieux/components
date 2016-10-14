@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.talend.components.api.properties.ComponentProperties;
 
 public class SnowflakeTestUtil {
 
@@ -90,8 +91,9 @@ public class SnowflakeTestUtil {
         props.userPassword.userId.setStoredValue(username);
         props.userPassword.password.setStoredValue(password);
         props.account.setStoredValue(account);
-        props.db.setStoredValue(db);
         props.warehouse.setStoredValue(warehouse);
+        props.db.setStoredValue(db);
+        props.schemaName.setStoredValue(schema);
     }
 
 }

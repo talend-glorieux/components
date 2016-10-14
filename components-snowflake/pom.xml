@@ -6,12 +6,11 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>components-parent</artifactId>
-        <version>0.13.1</version>
+        <version>0.15.0-SNAPSHOT</version>
         <relativePath>../components-parent/pom.xml</relativePath>
     </parent>
 
     <name>Components - Snowflake</name>
-    <!-- <groupId>org.talend.components</groupId>-->
     <artifactId>components-snowflake</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
@@ -27,9 +26,9 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>com.snowflake</groupId>
-            <artifactId>jdbc-driver</artifactId>
-            <version>2.7.98</version>
+            <groupId>net.snowflake</groupId>
+            <artifactId>snowflake-jdbc</artifactId>
+            <version>2.8.2</version>
         </dependency>
 
         <!--
@@ -83,6 +82,17 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <snowflake.account>${snowflake.account}</snowflake.account>
+                        <snowflake.user>${snowflake.user}</snowflake.user>
+                        <snowflake.password>${snowflake.password}</snowflake.password>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -97,9 +107,7 @@
                             <instructions>
                                 <Bundle-SymbolicName>org.talend.components.snowflake.lib</Bundle-SymbolicName>
                                 <Bundle-Name>${project.name} lib</Bundle-Name>
-                                <Include-Resource>
-                                    {maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt
-                                </Include-Resource>
+                                <Include-Resource>{maven-resources},META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt</Include-Resource>
                                 <Service-Component>*</Service-Component>
                                 <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
                             </instructions>
@@ -143,9 +151,7 @@
                                 <Import-Package>*,aQute.bnd.annotation.component</Import-Package>
                                 <Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!components*
                                 </Embed-Dependency>
-                                <Include-Resource>
-                                    {maven-resources},META-INF/maven/org.talend.components/components-snowflake/dependencies.txt=target/classes/META-INF/maven/dependencies.txt
-                                </Include-Resource>
+                                <Include-Resource>{maven-resources},META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt</Include-Resource>
                                 <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
                             </instructions>
                         </configuration>

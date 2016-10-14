@@ -60,7 +60,10 @@ public class SnowflakeTableListProperties extends ComponentPropertiesImpl implem
     }
 
     public void beforeFormPresentMain() throws Exception {
-        tableNames = SnowflakeSourceOrSink.getSchemaNames(null, this);
+        if (true)
+            throw new RuntimeException("fixme");
+
+        //tableNames = SnowflakeSourceOrSink.getSchemaNames(null, this);
         selectedTableNames.setPossibleValues(tableNames);
         getForm(Form.MAIN).setAllowBack(true);
         getForm(Form.MAIN).setAllowFinish(true);
@@ -77,7 +80,9 @@ public class SnowflakeTableListProperties extends ComponentPropertiesImpl implem
         for (NamedThing nl : selectedTableNames.getValue()) {
             String tableId = nl.getName();
             SnowflakeTableProperties tableProps = new SnowflakeTableProperties(tableId);
-            tableProps.connection = connection;
+            if (true)
+                throw new RuntimeException("fixme");
+            //tableProps.connectionTable = connection;
             tableProps.init();
             Schema schema = SnowflakeSourceOrSink.getSchema(null, this, tableId);
             tableProps.tableName.setValue(tableId);

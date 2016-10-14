@@ -9,6 +9,7 @@ import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
+import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputProperties;
 import org.talend.daikon.avro.AvroUtils;

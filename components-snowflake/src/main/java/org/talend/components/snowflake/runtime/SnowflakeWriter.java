@@ -17,7 +17,7 @@ import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.snowflake.SnowflakeOutputProperties.OutputAction;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
-import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputProperties;
+import org.talend.components.snowflake.tsnowflakeoutputbulk.TSnowflakeOutputBulkProperties;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
@@ -34,7 +34,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
 
     private final RuntimeContainer container;
 
-    private final TSnowflakeOutputProperties sprops;
+    private final TSnowflakeOutputBulkProperties sprops;
 
     private String upsertKeyColumn;
 
@@ -592,7 +592,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
                 Schema.Field inField = input.getSchema().getField(outField.name());
                 if (inField != null) {
                     outValue = input.get(inField.pos());
-                } else if (TSnowflakeOutputProperties.FIELD_SNOWFLAKE_ID.equals(outField.name())) {
+                } else if (TSnowflakeOutputBulkProperties.FIELD_SNOWFLAKE_ID.equals(outField.name())) {
                     outValue = id;
                 }
                 successful.put(outField.pos(), outValue);

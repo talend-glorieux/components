@@ -1,10 +1,5 @@
 package org.talend.components.snowflake;
 
-import static org.talend.daikon.properties.presentation.Widget.widget;
-import static org.talend.daikon.properties.property.PropertyFactory.newString;
-
-import java.util.List;
-
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
@@ -14,16 +9,21 @@ import org.talend.daikon.NamedThing;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
-import org.talend.daikon.properties.property.StringProperty;
+import org.talend.daikon.properties.property.Property;
+
+import java.util.List;
+
+import static org.talend.daikon.properties.presentation.Widget.widget;
+import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
 public class SnowflakeTableProperties extends ComponentPropertiesImpl implements SnowflakeProvideConnectionProperties {
 
-    public SnowflakeConnectionProperties connection = new SnowflakeConnectionProperties("connection");
+    public SnowflakeConnectionProperties connection;
 
     //
     // Properties
     //
-    public StringProperty tableName = newString("tableName"); //$NON-NLS-1$
+    public Property<String> tableName = newString("tableName"); //$NON-NLS-1$
 
     public ISchemaListener schemaListener;
 
@@ -68,7 +68,7 @@ public class SnowflakeTableProperties extends ComponentPropertiesImpl implements
     public ValidationResult beforeTableName() throws Exception {
         try {
             List<NamedThing> tableNames = SnowflakeSourceOrSink.getSchemaNames(null, connection);
-            tableName.setPossibleNamedThingValues(tableNames);
+            tableName.setPossibleValues(tableNames);
         } catch (ComponentException ex) {
             return ex.getValidationResult();
         }
@@ -86,6 +86,6 @@ public class SnowflakeTableProperties extends ComponentPropertiesImpl implements
 
     @Override
     public SnowflakeConnectionProperties getConnectionProperties() {
-        return connection;
+        return connection.getConnectionProperties();
     }
 }

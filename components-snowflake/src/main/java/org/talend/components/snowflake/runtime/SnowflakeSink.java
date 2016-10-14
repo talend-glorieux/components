@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.snowflake.SnowflakeOutputProperties;
-import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputProperties;
+import org.talend.components.snowflake.tsnowflakeoutputbulk.TSnowflakeOutputBulkProperties;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.ValidationResult.Result;
 
@@ -45,7 +45,7 @@ public class SnowflakeSink extends SnowflakeSourceOrSink implements Sink {
      *
      * @return the properties
      */
-    public TSnowflakeOutputProperties getSnowflakeOutputProperties() {
-        return (TSnowflakeOutputProperties) properties;
+    public TSnowflakeOutputBulkProperties getSnowflakeOutputProperties() {
+        return (TSnowflakeOutputBulkProperties) properties;
     }
 }

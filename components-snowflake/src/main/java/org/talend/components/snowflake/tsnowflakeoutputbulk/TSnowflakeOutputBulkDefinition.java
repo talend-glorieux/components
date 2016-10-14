@@ -1,4 +1,4 @@
-package org.talend.components.snowflake.tsnowflakeoutput;
+package org.talend.components.snowflake.tsnowflakeoutputbulk;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -18,11 +18,11 @@ import org.talend.daikon.properties.property.Property;
  * Component that can connect to a snowflake system and put some data into it.
  */
 
-public class TSnowflakeOutputDefinition extends SnowflakeDefinition {
+public class TSnowflakeOutputBulkDefinition extends SnowflakeDefinition {
 
-    public static final String COMPONENT_NAME = "tSnowflakeOutput"; //$NON-NLS-1$
+    public static final String COMPONENT_NAME = "tSnowflakeOutputBulk"; //$NON-NLS-1$
 
-    public TSnowflakeOutputDefinition() {
+    public TSnowflakeOutputBulkDefinition() {
         super(COMPONENT_NAME);
     }
 
@@ -43,7 +43,7 @@ public class TSnowflakeOutputDefinition extends SnowflakeDefinition {
 
     @Override
     public Class<? extends ComponentProperties> getPropertyClass() {
-        return TSnowflakeOutputProperties.class;
+        return TSnowflakeOutputBulkProperties.class;
     }
 
     @SuppressWarnings("unchecked")

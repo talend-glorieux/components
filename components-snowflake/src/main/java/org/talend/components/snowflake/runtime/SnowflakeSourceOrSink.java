@@ -18,7 +18,9 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
+import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.components.snowflake.SnowflakeProvideConnectionProperties;
+import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
@@ -105,19 +107,17 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
         Connection conn = null;
         String queryString = "";
 
-        String warehouse = connProps.warehouse.getStringValue();
-        String db = connProps.db.getStringValue();
-        String schema = connProps.schema.getStringValue();
-        String authenticator = connProps.authenticator.getStringValue();
         String user = connProps.userPassword.userId.getStringValue();
         String password = connProps.userPassword.password.getStringValue();
-        String role = connProps.role.getStringValue();
-        String tracing = connProps.tracing.getStringValue();
-        String passcode = connProps.passcode.getStringValue();
-        String passcodeInPassword = connProps.passcodeInPassword.getStringValue();
         String account = connProps.account.getStringValue();
 
-        /* warehouse, db & schema are mandatory parameters. Still checking to be sure */
+        String warehouse = connProps.warehouse.getStringValue();
+        String db = connProps.db.getStringValue();
+        String schema = connProps.schemaName.getStringValue();
+
+        String role = connProps.role.getStringValue();
+        String tracing = connProps.tracing.getStringValue();
+
         if (null != warehouse && !"".equals(warehouse)) {
             queryString = queryString + "warehouse=" + warehouse;
         }
@@ -128,38 +128,22 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
             queryString = queryString + "&schema=" + schema;
         }
 
-        if (null != authenticator && !"".equals(authenticator)) {
-            queryString = queryString + "&authenticator=" + authenticator;
-        }
         if (null != role && !"".equals(role)) {
             queryString = queryString + "&role=" + role;
         }
         if (null != tracing && !"".equals(tracing)) {
             queryString = queryString + "&tracing=" + tracing;
         }
-        if (null != passcode && !"".equals(passcode)) {
-            queryString = queryString + "&passcode=" + passcode;
-        }
-        queryString = queryString + "&passcodeInPassword=" + passcodeInPassword;
-
         String connectionURL = "jdbc:snowflake://" + account + ".snowflakecomputing.com" + "/?" + queryString;
-
         String JDBC_DRIVER = "com.snowflake.client.jdbc.SnowflakeDriver";
 
         try {
-            // DriverClassLoader driverClassLoader = new
-            // DriverClassLoader(com.snowflake.client.jdbc.SnowflakeConnection.class.getClassLoader());
             Driver driver = (Driver) Class.forName(JDBC_DRIVER).newInstance();
             DriverManager.registerDriver(new DriverWrapper(driver));
 
             conn = DriverManager.getConnection(connectionURL, user, password);
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e.getMessage().contains("Communications link failure")) {
-                // TODO: fill this in
-            }
-            // TODO: Log error
-            throw new IOException(e);
+            throw new ComponentException(exceptionToValidationResult(e));
         }
 
         nativeConn.setConnection(conn);
@@ -171,7 +155,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
         return nativeConn;
     }
 
-    public static List<NamedThing> getSchemaNames(RuntimeContainer container, SnowflakeProvideConnectionProperties properties)
+    public static List<NamedThing> getSchemaNames(RuntimeContainer container, SnowflakeConnectionProperties properties)
             throws IOException {
         SnowflakeSourceOrSink ss = new SnowflakeSourceOrSink();
         ss.initialize(null, (ComponentProperties) properties);
@@ -183,12 +167,6 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.talend.components.api.component.runtime.SourceOrSink#getSchemaNames(org.talend.components.api.container.
-     * RuntimeContainer)
-     */
     @Override
     public List<NamedThing> getSchemaNames(RuntimeContainer container) throws IOException {
         return getSchemaNames(connect(container).getConnection());
@@ -204,8 +182,8 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
     protected List<NamedThing> getSchemaNames(Connection connection) throws IOException {
 
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        String catalog = connProps.db.getStringValue();
-        String dbSchema = connProps.schema.getStringValue();
+        String catalog = null  /*connProps.db.getStringValue()*/;
+        String dbSchema = null  /*connProps.schema.getStringValue()*/;
 
         // Returns the list with a table names (for the wh, db and schema)
         List<NamedThing> returnList = new ArrayList<>();
@@ -248,8 +226,8 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
     }
 
     protected Schema getSchema(Connection connection, String tableName) throws IOException {
-        String catalog = properties.getConnectionProperties().db.getStringValue();
-        String dbSchema = properties.getConnectionProperties().schema.getStringValue();
+        String catalog = null/*properties.getConnectionProperties().db.getStringValue()*/;
+        String dbSchema = null/*properties.getConnectionProperties().schema.getStringValue()*/;
 
         Schema tableSchema = null;
 

@@ -13,7 +13,6 @@ import org.apache.avro.Schema;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.common.SchemaProperties;
-import org.talend.components.snowflake.runtime.SnowflakeConnectionTableProperties;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
