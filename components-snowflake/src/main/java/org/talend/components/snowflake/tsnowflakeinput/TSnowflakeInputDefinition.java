@@ -11,6 +11,7 @@ import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeDefinition;
 import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.components.snowflake.runtime.SnowflakeSink;
+import org.talend.components.snowflake.runtime.SnowflakeSource;
 import org.talend.daikon.properties.Properties;
 
 /**
@@ -48,9 +49,7 @@ public class TSnowflakeInputDefinition extends SnowflakeDefinition {
     @Override
     public RuntimeInfo getRuntimeInfo(Properties properties, ConnectorTopology componentType) {
         if (componentType == ConnectorTopology.OUTGOING) {
-            return new SimpleRuntimeInfo(this.getClass().getClassLoader(),
-                    DependenciesReader.computeDependenciesFilePath(getMavenGroupId(), getMavenArtifactId()),
-                    SnowflakeSink.class.getCanonicalName());
+            return getCommonRuntimeInfo(this.getClass().getClassLoader(), SnowflakeSource.class);
         } else {
             return null;
         }

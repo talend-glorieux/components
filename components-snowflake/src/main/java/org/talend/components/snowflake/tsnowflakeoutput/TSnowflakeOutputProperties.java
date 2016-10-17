@@ -1,4 +1,4 @@
-package org.talend.components.snowflake.tsnowflakeoutputbulk;
+package org.talend.components.snowflake.tsnowflakeoutput;
 
 import static org.talend.daikon.properties.presentation.Widget.widget;
 import static org.talend.daikon.properties.property.PropertyFactory.*;
@@ -15,7 +15,7 @@ import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-public class TSnowflakeOutputBulkProperties extends SnowflakeOutputProperties {
+public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
 
     public static final String FIELD_SNOWFLAKE_ID = "snowflake_id";
 
@@ -41,7 +41,7 @@ public class TSnowflakeOutputBulkProperties extends SnowflakeOutputProperties {
     // should be file
     public Property<String> logFileName = newString("logFileName"); //$NON-NLS-1$
 
-    public TSnowflakeOutputBulkProperties(String name) {
+    public TSnowflakeOutputProperties(String name) {
         super(name);
     }
 

@@ -5,7 +5,7 @@ import org.talend.components.api.ComponentInstaller;
 import org.talend.components.api.Constants;
 import org.talend.components.snowflake.tsnowflakeconnection.TSnowflakeConnectionDefinition;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputDefinition;
-import org.talend.components.snowflake.tsnowflakeoutputbulk.TSnowflakeOutputBulkDefinition;
+import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputDefinition;
 
 import aQute.bnd.annotation.component.Component;
 
@@ -20,7 +20,7 @@ public class SnowflakeFamilyDefinition extends AbstractComponentFamilyDefinition
     public SnowflakeFamilyDefinition() {
         super(NAME,
                 // Components
-                new TSnowflakeConnectionDefinition(), new TSnowflakeInputDefinition(), new TSnowflakeOutputBulkDefinition(),
+                new TSnowflakeConnectionDefinition(), new TSnowflakeInputDefinition(), new TSnowflakeOutputDefinition(),
                 // Component wizards
                 new SnowflakeConnectionWizardDefinition());
     }

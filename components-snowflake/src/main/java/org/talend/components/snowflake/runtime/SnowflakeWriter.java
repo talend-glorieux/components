@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.snowflake.client.loader.*;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
@@ -15,18 +17,26 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.api.container.RuntimeContainer;
+import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.SnowflakeOutputProperties.OutputAction;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
-import org.talend.components.snowflake.tsnowflakeoutputbulk.TSnowflakeOutputBulkProperties;
+import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputProperties;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
 
+    private static final String STAGE = "stage";
+
+    private StreamLoader loader;
+
     private final SnowflakeWriteOperation snowflakeWriteOperation;
 
-    private SnowflakeNativeConnection connection;
+    private SnowflakeNativeConnection uploadConnection;
+    private SnowflakeNativeConnection processingConnection;
+
+    private ResultListener listener;
 
     private String uId;
 
@@ -34,7 +44,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
 
     private final RuntimeContainer container;
 
-    private final TSnowflakeOutputBulkProperties sprops;
+    private final TSnowflakeOutputProperties sprops;
 
     private String upsertKeyColumn;
 
@@ -92,6 +102,139 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
 
     private Map<Integer, Integer> schemaToSQLPositionMap;
 
+    class ResultListener implements LoadResultListener
+    {
+
+        final private List<LoadingError> errors = new ArrayList<>();
+
+        final private AtomicInteger errorCount = new AtomicInteger(0);
+        final private AtomicInteger errorRecordCount = new AtomicInteger(0);
+
+        final public AtomicInteger counter = new AtomicInteger(0);
+        final public AtomicInteger processed = new AtomicInteger(0);
+        final public AtomicInteger deleted = new AtomicInteger(0);
+        final public AtomicInteger updated = new AtomicInteger(0);
+        final private AtomicInteger submittedRowCount = new AtomicInteger(0);
+
+        private Object[] lastRecord = null;
+
+        public boolean throwOnError = false; // should not trigger rollback
+
+        @Override
+        public boolean needErrors()
+        {
+            return true;
+        }
+
+        @Override
+        public boolean needSuccessRecords()
+        {
+            return true;
+        }
+
+        @Override
+        public void addError(LoadingError error)
+        {
+            errors.add(error);
+        }
+
+        @Override
+        public boolean throwOnError()
+        {
+            return throwOnError;
+        }
+
+        public List<LoadingError> getErrors()
+        {
+            return errors;
+        }
+
+        @Override
+        public void recordProvided(Operation op, Object[] record)
+        {
+            lastRecord = record;
+        }
+
+        @Override
+        public void addProcessedRecordCount(Operation op, int i)
+        {
+            processed.addAndGet(i);
+        }
+
+        @Override
+        public void addOperationRecordCount(Operation op, int i)
+        {
+            counter.addAndGet(i);
+            if (op == Operation.DELETE)
+            {
+                deleted.addAndGet(i);
+            }
+            else if (op == Operation.MODIFY || op == Operation.UPSERT)
+            {
+                updated.addAndGet(i);
+            }
+        }
+
+        public Object[] getLastRecord()
+        {
+            return lastRecord;
+        }
+
+        @Override
+        public int getErrorCount()
+        {
+            return errorCount.get();
+        }
+
+        @Override
+        public int getErrorRecordCount()
+        {
+            return errorRecordCount.get();
+        }
+
+        @Override
+        public void resetErrorCount()
+        {
+            errorCount.set(0);
+        }
+
+        @Override
+        public void resetErrorRecordCount()
+        {
+            errorRecordCount.set(0);
+        }
+
+        @Override
+        public void addErrorCount(int count)
+        {
+            errorCount.addAndGet(count);
+        }
+
+        @Override
+        public void addErrorRecordCount(int count)
+        {
+            errorRecordCount.addAndGet(count);
+        }
+
+        @Override
+        public void resetSubmittedRowCount()
+        {
+            submittedRowCount.set(0);
+        }
+
+        @Override
+        public void addSubmittedRowCount(int count)
+        {
+            submittedRowCount.addAndGet(count);
+        }
+
+        @Override
+        public int getSubmittedRowCount()
+        {
+            return submittedRowCount.get();
+        }
+    }
+
     public SnowflakeWriter(SnowflakeWriteOperation sfWriteOperation, RuntimeContainer container) {
         this.snowflakeWriteOperation = sfWriteOperation;
         this.container = container;
@@ -115,15 +258,45 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
     @Override
     public void open(String uId) throws IOException {
         this.uId = uId;
-        connection = sink.connect(container);
+        processingConnection = sink.connect(container);
+        uploadConnection = sink.connect(container);
         if (null == mainSchema) {
             mainSchema = sprops.table.main.schema.getValue();
-            tableSchema = sink.getSchema(connection.getConnection(), sprops.table.tableName.getStringValue());
+            tableSchema = sink.getSchema(processingConnection.getConnection(), sprops.table.tableName.getStringValue());
             if (AvroUtils.isIncludeAllFields(mainSchema)) {
                 mainSchema = tableSchema;
             } // else schema is fully specified
         }
-        upsertKeyColumn = sprops.upsertKeyColumn.getStringValue();
+
+        try {
+            processingConnection.getConnection().createStatement().execute(
+                    "CREATE OR REPLACE STAGE " + STAGE);
+        } catch (SQLException e) {
+            throw new IOException(e);
+        }
+
+        SnowflakeConnectionProperties connectionProperties = sprops.getConnectionProperties();
+
+        Map<LoaderProperty, Object> prop = new HashMap<>();
+        prop.put(LoaderProperty.tableName, sprops.table.tableName.getStringValue());
+        prop.put(LoaderProperty.schemaName, connectionProperties.schemaName.getStringValue());
+        prop.put(LoaderProperty.databaseName, connectionProperties.db.getStringValue());
+        prop.put(LoaderProperty.operation, Operation.INSERT);
+
+        List<Field> columns = mainSchema.getFields();
+        String[] columnsStr = new String[columns.size()];
+        int i = 0;
+        for (Field f : columns) {
+            columnsStr[i++] = f.name();
+        }
+        prop.put(LoaderProperty.columns, columnsStr);
+
+        prop.put(LoaderProperty.remoteStage, STAGE);
+
+        loader = (StreamLoader) LoaderFactory.createLoader(prop, uploadConnection.getConnection(), processingConnection.getConnection());
+        loader.setListener(listener);
+
+        loader.start();
     }
 
     @SuppressWarnings("unchecked")
@@ -165,7 +338,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
         }
         if (null == insertPS) {
             try {
-                Connection conn = connection.getConnection();
+                Connection conn = processingConnection.getConnection();
                 insertPS = conn.prepareStatement(insertSQL);
             } catch (Exception e) { // TODO: catch the correct exception
                 throw new IOException(e);
@@ -408,7 +581,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
         }
         if (null == updatePS) {
             try {
-                Connection conn = connection.getConnection();
+                Connection conn = processingConnection.getConnection();
                 updatePS = conn.prepareStatement(updateSQL);
             } catch (Exception e) { // TODO: catch the correct exception
                 throw new IOException(e);
@@ -520,7 +693,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
         }
         if (null == updatePS) {
             try {
-                Connection conn = connection.getConnection();
+                Connection conn = processingConnection.getConnection();
                 updatePS = conn.prepareStatement(updateSQL);
             } catch (Exception e) { // TODO: catch the correct exception
                 throw new IOException(e);
@@ -532,7 +705,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
         }
         if (null == insertPS) {
             try {
-                Connection conn = connection.getConnection();
+                Connection conn = processingConnection.getConnection();
                 insertPS = conn.prepareStatement(insertSQL);
             } catch (Exception e) { // TODO: catch the correct exception
                 throw new IOException(e);
@@ -592,7 +765,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
                 Schema.Field inField = input.getSchema().getField(outField.name());
                 if (inField != null) {
                     outValue = input.get(inField.pos());
-                } else if (TSnowflakeOutputBulkProperties.FIELD_SNOWFLAKE_ID.equals(outField.name())) {
+                } else if (TSnowflakeOutputProperties.FIELD_SNOWFLAKE_ID.equals(outField.name())) {
                     outValue = id;
                 }
                 successful.put(outField.pos(), outValue);
@@ -614,7 +787,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
         }
         if (null == deletePS) {
             try {
-                Connection conn = connection.getConnection();
+                Connection conn = processingConnection.getConnection();
                 deletePS = conn.prepareStatement(deleteSQL);
             } catch (Exception e) { // TODO: catch the correct exception
                 throw new IOException(e);
@@ -689,6 +862,12 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
 
     @Override
     public Result close() throws IOException {
+        try {
+            loader.finish();
+        } catch (Exception ex) {
+            throw new IOException(ex);
+        }
+
         logout();
         return new Result(uId, dataCount, successCount, rejectCount);
     }
@@ -754,7 +933,7 @@ final class SnowflakeWriter implements WriterWithFeedback<Result, IndexedRecord,
             break;
         }
 
-        Connection conn = connection.getConnection();
+        Connection conn = processingConnection.getConnection();
         try {
             conn.close();
         } catch (SQLException e) {
