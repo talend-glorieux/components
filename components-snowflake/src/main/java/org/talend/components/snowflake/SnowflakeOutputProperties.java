@@ -32,11 +32,6 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
     public Property<String> upsertKeyColumn = newString("upsertKeyColumn"); //$NON-NLS-1$
 
     //
-    // Advanced
-    //
-    public SnowflakeUpsertRelationTable sfUpsertRelationTable = new SnowflakeUpsertRelationTable("sfUpsertRelationTable");
-
-    //
     // Collections
     //
     protected transient PropertyPathConnector FLOW_CONNECTOR = new PropertyPathConnector(Connector.MAIN_NAME, "schemaFlow");
@@ -68,7 +63,6 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
                 upsertKeyColumn.setPossibleValues(fieldNames);
             }
 
-            sfUpsertRelationTable.columnName.setPossibleValues(fieldNames);
             return validationResult;
         }
     }
@@ -85,10 +79,6 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
         }
     }
 
-    public void beforeUpsertRelationTable() {
-        sfUpsertRelationTable.columnName.setPossibleValues(getFieldNames(table.main.schema));
-    }
-
     @Override
     public void setupProperties() {
         super.setupProperties();
@@ -100,7 +90,6 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
         table = new TableSubclass("table");
         table.connection = connection;
         table.setupProperties();
-        sfUpsertRelationTable.setUsePolymorphic(false);
     }
 
     @Override
@@ -114,16 +103,10 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
         } else {
             mainForm.addColumn(upsertKeyColumn);
         }
-
-        Form advancedForm = getForm(Form.ADVANCED); // TODO: check if this has already been defined.
-        advancedForm.addRow(widget(sfUpsertRelationTable).setWidgetType(Widget.TABLE_WIDGET_TYPE));
-        // check
-        // I18N
     }
 
     public void afterOutputAction() {
         refreshLayout(getForm(Form.MAIN));
-        refreshLayout(getForm(Form.ADVANCED)); // TODO:??
     }
 
     @Override
@@ -135,10 +118,8 @@ public class SnowflakeOutputProperties extends SnowflakeConnectionTablePropertie
             if (advForm != null) {
                 boolean isUpsert = OutputAction.UPSERT.equals(outputAction.getValue());
                 form.getWidget(upsertKeyColumn.getName()).setHidden(!isUpsert);
-                advForm.getWidget(sfUpsertRelationTable.getName()).setHidden(!isUpsert);
                 if (isUpsert) {
                     beforeUpsertKeyColumn();
-                    beforeUpsertRelationTable();
                 }
             }
         }

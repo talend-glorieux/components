@@ -4,13 +4,13 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import org.talend.components.api.component.ConnectorTopology;
-import org.talend.components.api.component.runtime.RuntimeInfo;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeDefinition;
 import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.components.snowflake.runtime.SnowflakeSink;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.property.Property;
+import org.talend.daikon.runtime.RuntimeInfo;
 
 /**
  * Component that can connect to a snowflake system and put some data into it.

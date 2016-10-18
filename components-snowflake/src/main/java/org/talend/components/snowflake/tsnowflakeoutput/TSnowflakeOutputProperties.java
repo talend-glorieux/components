@@ -49,14 +49,12 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
     public void setupProperties() {
         super.setupProperties();
 
-        sfUpsertRelationTable.setUseLookupFieldName(true);
         table.setSchemaListener(new ISchemaListener() {
 
             @Override
             public void afterSchema() {
                 updateOutputSchemas();
                 beforeUpsertKeyColumn();
-                beforeUpsertRelationTable();
             }
         });
     }

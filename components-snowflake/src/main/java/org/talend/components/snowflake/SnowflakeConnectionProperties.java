@@ -124,7 +124,6 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         refreshLayout(getForm(Form.ADVANCED));
     }
 
-    // TODO: refreshLayout (currently handled in super)
     @Override
     public void refreshLayout(Form form) {
         super.refreshLayout(form);

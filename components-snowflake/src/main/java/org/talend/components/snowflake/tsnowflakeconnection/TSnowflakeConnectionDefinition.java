@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.component.runtime.DependenciesReader;
-import org.talend.components.api.component.runtime.RuntimeInfo;
 import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
@@ -13,6 +12,7 @@ import org.talend.components.snowflake.SnowflakeDefinition;
 import org.talend.components.snowflake.runtime.SnowflakeSourceOrSink;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.property.Property;
+import org.talend.daikon.runtime.RuntimeInfo;
 
 public class TSnowflakeConnectionDefinition extends SnowflakeDefinition {
 
