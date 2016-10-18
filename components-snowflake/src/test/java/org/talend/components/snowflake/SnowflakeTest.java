@@ -58,6 +58,12 @@ public class SnowflakeTest extends AbstractComponentTest {
 
     private ComponentServiceImpl componentService;
 
+    private static String accountStr = System.getProperty("snowflake.account");
+    private static String user = System.getProperty("snowflake.user");
+    private static String password = System.getProperty("snowflake.password");
+    private static String schema = System.getProperty("snowflake.schema");
+    private static String db = System.getProperty("snowflake.db");
+
     private static String TEST_TABLE = "LOADER_TEST_TABLE";
 
     // So that multiple tests can run at the same time
@@ -110,50 +116,60 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
     @BeforeClass
-    public static void setupDatabase() throws ClassNotFoundException, SQLException {
+    public static void setupDatabase() throws Exception {
         Class.forName("com.snowflake.client.jdbc.SnowflakeDriver");
 
-        String accountStr = System.getProperty("snowflake.account");
-        String user = System.getProperty("snowflake.user");
-        String password = System.getProperty("snowflake.password");
+        if (accountStr == null) {
+            throw new Exception("This test expects snowflake.* system properties to be set. See the top of this class for the list of properties");
+        }
 
-        String connectionUrl = "jdbc:snowflake://" + accountStr +
-                ".snowflakecomputing.com";
+        try {
 
-        connectionUrl +=
-                "/?user=" +
-                        user + "&password=" +
-                        password + "&schema=LOADER&db=TEST_DB";
+            String connectionUrl = "jdbc:snowflake://" + accountStr +
+                    ".snowflakecomputing.com";
 
-        Properties properties = new Properties();
+            connectionUrl +=
+                    "/?user=" +
+                            user + "&password=" +
+                            password + "&schema=" + schema +
+                            "&db=" + db;
 
-        testConnection = DriverManager.getConnection(connectionUrl, properties);
-        testConnection.createStatement().execute(
-                "CREATE OR REPLACE SCHEMA LOADER");
-        testConnection.createStatement().execute(
-                "USE SCHEMA LOADER");
-        testConnection.createStatement().execute(
-                "DROP TABLE IF EXISTS LOADER." + testTable +
-                        " CASCADE");
-        testConnection.createStatement().execute(
-                "CREATE TABLE LOADER." + testTable +
-                        " ("
-                        + "ID int, "
-                        + "C1 varchar(255), "
-                        + "C2 varchar(255) DEFAULT 'X', "
-                        + "C3 double, "
-                        + "C4 timestamp, "
-                        + "C5 variant)");
+            Properties properties = new Properties();
+
+            testConnection = DriverManager.getConnection(connectionUrl, properties);
+            testConnection.createStatement().execute(
+                    "CREATE OR REPLACE SCHEMA " + schema);
+            testConnection.createStatement().execute(
+                    "USE SCHEMA " + schema);
+            testConnection.createStatement().execute(
+                    "DROP TABLE IF EXISTS " + schema +
+                            "." + testTable +
+                            " CASCADE");
+            testConnection.createStatement().execute(
+                    "CREATE TABLE " + schema +
+                            "." + testTable +
+                            " ("
+                            + "ID int, "
+                            + "C1 varchar(255), "
+                            + "C2 varchar(255) DEFAULT 'X', "
+                            + "C3 double, "
+                            + "C4 timestamp, "
+                            + "C5 variant)");
+        }
+        catch (Exception ex) {
+            throw new Exception("Make sure the system properties are correctly set as they might have caused this error", ex);
+        }
     }
 
 
     @AfterClass
     public static void teardownDatabase() throws SQLException {
-        if (!false) {
+        if (false) {
             testConnection.createStatement().execute(
-                    "DROP TABLE IF EXISTS LOADER." + testTable);
+                    "DROP TABLE IF EXISTS " + schema +
+                            "." + testTable);
             testConnection.createStatement().execute(
-                    "DROP SCHEMA IF EXISTS LOADER");
+                    "DROP SCHEMA IF EXISTS " + schema);
             testConnection.close();
         }
     }
@@ -179,7 +195,7 @@ public class SnowflakeTest extends AbstractComponentTest {
 
             final String json = "{\"key\":" + String.valueOf(rnd.nextInt()) + ","
                     + "\"bar\":" + i + "}";
-            row.put("ID",i);
+            row.put("ID", i);
             row.put("C1", "foo_" + i);
             row.put("C2", rnd.nextInt() / 3);
             row.put("C3", new Date());
@@ -307,13 +323,13 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
     // Returns the rows written (having been re-read so they have their Ids)
-    protected void doWriteRows(SnowflakeConnectionTableProperties props, List<IndexedRecord> outputRows) throws Exception {
+    protected Result doWriteRows(SnowflakeConnectionTableProperties props, List<IndexedRecord> outputRows) throws Exception {
         SnowflakeSink SnowflakeSink = new SnowflakeSink();
         SnowflakeSink.initialize(adaptor, props);
         SnowflakeSink.validate(adaptor);
         SnowflakeWriteOperation writeOperation = SnowflakeSink.createWriteOperation();
         Writer<Result> saleforceWriter = writeOperation.createWriter(adaptor);
-        writeRows(saleforceWriter, outputRows);
+        return writeRows(saleforceWriter, outputRows);
     }
 
     // Returns the rows written (having been re-read so they have their Ids)
@@ -335,8 +351,6 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
 
-
-
     @Test
     public void testLogin() throws Throwable {
         SnowflakeConnectionProperties props = (SnowflakeConnectionProperties) setupProps(null);
@@ -348,27 +362,38 @@ public class SnowflakeTest extends AbstractComponentTest {
         assertEquals(ValidationResult.Result.OK, props.getValidationResult().getStatus());
     }
 
-    @Test
-    public void testTableNames() throws Throwable {
-        TSnowflakeInputProperties props = (TSnowflakeInputProperties) getComponentService()
-                .getComponentProperties(TSnowflakeInputDefinition.COMPONENT_NAME);
-        setupProps(props.getConnectionProperties());
-        ComponentTestUtils.checkSerialize(props, errorCollector);
+    protected void checkAndSetupTable(SnowflakeConnectionTableProperties props) throws Throwable {
 
         assertEquals(2, props.getForms().size());
         Form f = props.table.getForm(Form.REFERENCE);
         assertTrue(f.getWidget("tableName").isCallBeforeActivate());
-        // The Form is bound to a Properties object that created it. The Forms might not always be associated with the
-        // properties object
-        // they came from.
-        ComponentProperties moduleProps = (ComponentProperties) f.getProperties();
-        moduleProps = (ComponentProperties) PropertiesTestUtils.checkAndBeforeActivate(getComponentService(), f, "tableName",
+
+        SnowflakeTableProperties moduleProps = (SnowflakeTableProperties) f.getProperties();
+        moduleProps = (SnowflakeTableProperties) PropertiesTestUtils.checkAndBeforeActivate(getComponentService(), f, "tableName",
                 moduleProps);
         Property prop = (Property) f.getWidget("tableName").getContent();
         LOGGER.debug(prop.getPossibleValues().toString());
         LOGGER.debug(moduleProps.getValidationResult().toString());
         assertEquals(ValidationResult.Result.OK, moduleProps.getValidationResult().getStatus());
         assertTrue(prop.getPossibleValues().size() > 10);
+
+        moduleProps.tableName.setValue(testTable);
+        moduleProps = (SnowflakeTableProperties) PropertiesTestUtils.checkAndAfter(getComponentService(), f, "tableName", moduleProps);
+        Schema schema = moduleProps.main.schema.getValue();
+        LOGGER.debug(schema.toString());
+        for (Schema.Field child : schema.getFields()) {
+            LOGGER.debug(child.name());
+        }
+    }
+
+
+    @Test
+    public void testTableNames() throws Throwable {
+        TSnowflakeInputProperties props = (TSnowflakeInputProperties) getComponentService()
+                .getComponentProperties(TSnowflakeInputDefinition.COMPONENT_NAME);
+        setupProps(props.getConnectionProperties());
+        ComponentTestUtils.checkSerialize(props, errorCollector);
+        checkAndSetupTable(props);
     }
 
     @Test
@@ -380,17 +405,17 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
     @Test
-    @Ignore("not finished")
     public void testOutput() throws Throwable {
         TSnowflakeOutputProperties props = (TSnowflakeOutputProperties) getComponentService()
                 .getComponentProperties(TSnowflakeOutputDefinition.COMPONENT_NAME);
         setupProps(props.getConnectionProperties());
-        props.table.tableName.setStoredValue(testTable);
+        checkAndSetupTable(props);
         props.outputAction.setStoredValue(SnowflakeOutputProperties.OutputAction.INSERT);
         props.afterOutputAction();
 
-        doWriteRows(props, makeRows(100));
-        Writer<Result> writer = createSnowflakeOutputWriter(props);
+        Result result = doWriteRows(props, makeRows(100));
+        assertEquals(100, result.getSuccessCount());
+        assertEquals(0, result.getRejectCount());
     }
 
 
@@ -417,9 +442,6 @@ public class SnowflakeTest extends AbstractComponentTest {
         // FIXME - finish this test
         // WriterResult writeResult = SnowflakeTestHelper.writeRows(saleforceWriter, outputRows);
     }
-
-
-
 
 
 }
