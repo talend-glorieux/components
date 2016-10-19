@@ -15,6 +15,7 @@ package org.talend.components.jira;
 import javax.inject.Inject;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.talend.components.api.service.ComponentService;
 import org.talend.components.api.test.AbstractComponentTest;
 import org.talend.components.jira.tjirainput.TJiraInputDefinition;
@@ -27,6 +28,7 @@ import org.talend.components.jira.tjiraoutput.TJiraOutputDefinition;
 public class JiraComponentsTestBase extends AbstractComponentTest {
 
     @Inject
+    @Qualifier(value = "baseComponentService")
     private ComponentService componentService;
 
     @Override

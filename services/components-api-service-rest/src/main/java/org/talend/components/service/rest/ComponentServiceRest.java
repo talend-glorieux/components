@@ -12,10 +12,11 @@
 // ============================================================================
 package org.talend.components.service.rest;
 
+import static org.talend.components.service.rest.configuration.ComponentsSetup.BASE_COMPONENT_SERVICE_ID;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,16 +26,10 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.talend.components.api.ComponentInstaller;
+import org.springframework.web.bind.annotation.*;
 import org.talend.components.api.RuntimableDefinition;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
@@ -43,12 +38,10 @@ import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.service.ComponentService;
-import org.talend.components.api.service.common.ComponentRegistry;
 import org.talend.components.api.service.common.ComponentServiceImpl;
 import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.components.api.wizard.ComponentWizardDefinition;
 import org.talend.components.api.wizard.WizardImageType;
-import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.exception.error.CommonErrorCodes;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.service.Repository;
@@ -74,18 +67,10 @@ public class ComponentServiceRest implements ComponentService {
 
     public static final String BASE_PATH = "/components"; //$NON-NLS-1$
 
+    @Autowired
+    @Qualifier(BASE_COMPONENT_SERVICE_ID)
     private ComponentService componentServiceDelegate;
 
-    @Autowired
-    public ComponentServiceRest(final ApplicationContext context) {
-        ComponentRegistry registry = new ComponentRegistry();
-        Map<String, ComponentInstaller> installers = context.getBeansOfType(ComponentInstaller.class);
-        for (ComponentInstaller installer : installers.values()) {
-            installer.install(registry);
-        }
-        registry.lock();
-        this.componentServiceDelegate = new ComponentServiceImpl(registry);
-    }
 
     @Override
     @RequestMapping(value = BASE_PATH
@@ -252,20 +237,6 @@ public class ComponentServiceRest implements ComponentService {
     public <T extends RuntimableDefinition<?, ?>> Iterable<T> getDefinitionsByType(Class<T> cls) {
         // Needs to be copied into a new list to be serialized remotely.
         return Lists.newArrayList(componentServiceDelegate.getDefinitionsByType(cls));
-    }
-
-    // The {cls:.+} notation ensures that no tokens in the classname are considered to be file extensions (like .json or .txt)
-    @RequestMapping(value = BASE_PATH
-            + "/definitions/{cls:.+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get the definitions of a common type.", notes = "Given a class or interface, return all of the definitions that were implemented in the component framework that can be assigned to that type.")
-    public @ResponseBody Iterable<? extends RuntimableDefinition<?, ?>> getDefinitionsByType(
-            @PathVariable(value = "cls") @ApiParam(name = "cls", value = "Class name to fetch.") String cls) {
-        try {
-            Class<? extends RuntimableDefinition<?, ?>> defCls = (Class<? extends RuntimableDefinition<?, ?>>) Class.forName(cls);
-            return getDefinitionsByType(defCls);
-        } catch (ClassNotFoundException e) {
-            throw new TalendRuntimeException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
-        }
     }
 
     @Override

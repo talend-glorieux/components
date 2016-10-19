@@ -13,8 +13,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.service.ComponentService;
 import org.talend.components.api.test.ComponentTestUtils;
@@ -23,14 +24,15 @@ import org.talend.components.splunk.objects.SplunkJSONEventField;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.property.Property;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = SpringTestApp.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = SpringTestApp.class)
 public class TSplunkEventCollectorTestIT {
 
     @Rule
     public ErrorCollector errorCollector = new ErrorCollector();
 
     @Inject
+    @Qualifier(value = "baseComponentService")
     private ComponentService componentService;
 
     public ComponentService getComponentService() {

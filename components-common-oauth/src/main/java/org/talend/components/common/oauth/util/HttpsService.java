@@ -12,13 +12,12 @@
 // ============================================================================
 package org.talend.components.common.oauth.util;
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
- * created by bchen on Aug 26, 2013 Detailled comment
+ * created by bchen on Aug 26, 2013 Detailed comment
  * 
  */
 public class HttpsService {
@@ -31,16 +30,28 @@ public class HttpsService {
      * @throws Exception
      */
     public HttpsService(String host, int port, Handler handler) throws Exception {
+
         server = new Server();
 
-        SslSelectChannelConnector ssl_connector = new SslSelectChannelConnector();
-        ssl_connector.setHost(host);
-        ssl_connector.setPort(port);
-        SslContextFactory cf = ssl_connector.getSslContextFactory();
-        cf.setKeyStorePath(HttpsService.class.getResource("sslkey").toString());
-        cf.setKeyStorePassword("talend");
-        cf.setKeyManagerPassword("talend");
-        server.addConnector(ssl_connector);
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSecureScheme("https");
+        httpConfig.setSecurePort(port);
+
+        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+        httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setKeyStorePath(HttpsService.class.getResource("sslkey").toString());
+        sslContextFactory.setKeyStorePassword("talend");
+        sslContextFactory.setKeyManagerPassword("talend");
+
+        ServerConnector sslConnector = new ServerConnector(server,
+                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                new HttpConnectionFactory(httpsConfig));
+        sslConnector.setPort(port);
+        sslConnector.setHost(host);
+        server.addConnector(sslConnector);
+
         server.setHandler(handler);
         server.start();
     }
