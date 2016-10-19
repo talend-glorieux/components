@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.talend.components</groupId>
-    <artifactId>components-api-beam</artifactId>
+    <artifactId>components-adapter-beam</artifactId>
     <version>0.15.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -12,9 +12,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <beam.version>0.3.0-incubating-SNAPSHOT</beam.version>
     </properties>
 
