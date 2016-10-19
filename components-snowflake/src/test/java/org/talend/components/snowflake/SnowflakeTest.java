@@ -273,7 +273,7 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
 
-    protected List<IndexedRecord> readRows(TSnowflakeInputProperties inputProps) throws IOException {
+    protected List<IndexedRecord> readRows(SnowflakeConnectionTableProperties inputProps) throws IOException {
         BoundedReader<IndexedRecord> reader = createBoundedReader(inputProps);
         boolean hasRecord = reader.start();
         List<IndexedRecord> rows = new ArrayList<>();
@@ -283,14 +283,6 @@ public class SnowflakeTest extends AbstractComponentTest {
             hasRecord = reader.advance();
         }
         return rows;
-    }
-
-    protected List<IndexedRecord> readRows(SnowflakeConnectionTableProperties props) throws IOException {
-        TSnowflakeInputProperties inputProps = (TSnowflakeInputProperties) new TSnowflakeInputProperties("bar").init();
-        inputProps.connection = props.connection;
-        inputProps.table = props.table;
-        List<IndexedRecord> inputRows = readRows(inputProps);
-        return inputRows;
     }
 
     List<IndexedRecord> readAndCheckRows(String random, SnowflakeConnectionTableProperties props, int count) throws Exception {
@@ -387,6 +379,20 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
 
+    protected void populateOutput() throws Throwable {
+        TSnowflakeOutputProperties props = (TSnowflakeOutputProperties) getComponentService()
+                .getComponentProperties(TSnowflakeOutputDefinition.COMPONENT_NAME);
+        setupProps(props.getConnectionProperties());
+        checkAndSetupTable(props);
+        props.outputAction.setStoredValue(SnowflakeOutputProperties.OutputAction.INSERT);
+        props.afterOutputAction();
+
+        Result result = doWriteRows(props, makeRows(100));
+        assertEquals(100, result.getSuccessCount());
+        assertEquals(0, result.getRejectCount());
+    }
+
+
     @Test
     public void testTableNames() throws Throwable {
         TSnowflakeInputProperties props = (TSnowflakeInputProperties) getComponentService()
@@ -405,17 +411,13 @@ public class SnowflakeTest extends AbstractComponentTest {
     }
 
     @Test
-    public void testOutput() throws Throwable {
-        TSnowflakeOutputProperties props = (TSnowflakeOutputProperties) getComponentService()
-                .getComponentProperties(TSnowflakeOutputDefinition.COMPONENT_NAME);
-        setupProps(props.getConnectionProperties());
-        checkAndSetupTable(props);
-        props.outputAction.setStoredValue(SnowflakeOutputProperties.OutputAction.INSERT);
-        props.afterOutputAction();
+    public void testOutputInsert() throws Throwable {
+        populateOutput();
+    }
 
-        Result result = doWriteRows(props, makeRows(100));
-        assertEquals(100, result.getSuccessCount());
-        assertEquals(0, result.getRejectCount());
+    @Test
+    public void testOutputDelete() throws Throwable {
+        populateOutput();
     }
 
 
