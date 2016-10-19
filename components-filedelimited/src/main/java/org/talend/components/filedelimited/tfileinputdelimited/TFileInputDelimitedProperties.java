@@ -1,5 +1,7 @@
 package org.talend.components.filedelimited.tfileinputdelimited;
 
+import static org.talend.daikon.properties.presentation.Widget.widget;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -10,8 +12,9 @@ import org.apache.avro.Schema;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.common.EncodingTypeProperties;
 import org.talend.components.common.SchemaProperties;
-import org.talend.components.common.ValuesTrimPropertis;
+import org.talend.components.common.ValuesTrimProperties;
 import org.talend.components.filedelimited.DecodeTable;
 import org.talend.components.filedelimited.FileDelimitedProperties;
 import org.talend.daikon.avro.SchemaConstants;
@@ -19,8 +22,6 @@ import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.properties.property.PropertyFactory;
-
-import static org.talend.daikon.properties.presentation.Widget.widget;
 
 public class TFileInputDelimitedProperties extends FileDelimitedProperties {
 
@@ -32,14 +33,6 @@ public class TFileInputDelimitedProperties extends FileDelimitedProperties {
         super(name);
     }
 
-    public Property<Integer> header = PropertyFactory.newInteger("header");
-
-    public Property<Integer> footer = PropertyFactory.newInteger("footer");
-
-    public Property<Integer> limit = PropertyFactory.newInteger("limit");
-
-    public Property<Boolean> removeEmptyRow = PropertyFactory.newBoolean("removeEmptyRow");
-
     public Property<Boolean> uncompress = PropertyFactory.newBoolean("uncompress");
 
     public Property<Boolean> dieOnError = PropertyFactory.newBoolean("dieOnError");
@@ -49,7 +42,7 @@ public class TFileInputDelimitedProperties extends FileDelimitedProperties {
 
     public Property<Integer> nbRandom = PropertyFactory.newInteger("nbRandom");
 
-    public ValuesTrimPropertis trimColumns = new ValuesTrimPropertis("trimColumns");
+    public ValuesTrimProperties trimColumns = new ValuesTrimProperties("trimColumns");
 
     public Property<Boolean> checkFieldsNum = PropertyFactory.newBoolean("checkFieldsNum");
 
@@ -72,18 +65,14 @@ public class TFileInputDelimitedProperties extends FileDelimitedProperties {
     @Override
     public void setupProperties() {
         super.setupProperties();
-        header.setValue(0);
-        footer.setValue(0);
+        encoding.encodingType.setPossibleValues(encoding.getDefaultEncodings());
+        encoding.encodingType.setValue(EncodingTypeProperties.ENCODING_TYPE_ISO_8859_15);
         nbRandom.setValue(10);
-        removeEmptyRow.setValue(true);
         setSchemaListener(new ISchemaListener() {
 
             @Override
             public void afterSchema() {
                 updateOutputSchemas();
-                List<String> fieldsName = getFieldNames(main.schema);
-                trimColumns.setFieldNames(fieldsName);
-                trimColumns.beforeTrimTable();
                 beforeDecodeTable();
             }
         });
@@ -93,9 +82,9 @@ public class TFileInputDelimitedProperties extends FileDelimitedProperties {
     public void setupLayout() {
         super.setupLayout();
         Form mainForm = getForm(Form.MAIN);
-        mainForm.addRow(csvOptions);
         mainForm.addRow(rowSeparator);
         mainForm.addColumn(fieldSeparator);
+        mainForm.addRow(csvOptions);
         mainForm.addRow(escapeChar);
         mainForm.addColumn(textEnclosure);
         mainForm.addRow(header);
@@ -169,14 +158,11 @@ public class TFileInputDelimitedProperties extends FileDelimitedProperties {
     }
 
     public void beforeDecodeTable() {
-        List<String> fieldNames = trimColumns.getFieldNames();
+        List<String> fieldNames = getFieldNames(main.schema);
         if (fieldNames != null && fieldNames.size() > 0) {
             decodeTable.columnName.setValue(fieldNames);
-            List<Boolean> decodeValueList = new ArrayList<>();
-            for (int i = fieldNames.size(); i > 0; i--) {
-                decodeValueList.add(Boolean.FALSE);
-            }
-            decodeTable.decode.setValue(decodeValueList);
+            trimColumns.setFieldNames(fieldNames);
+            trimColumns.beforeTrimTable();
         }
     }
 
