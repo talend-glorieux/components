@@ -2,12 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.talend.components</groupId>
 		<artifactId>components-parent</artifactId>
 		<version>0.15.0-SNAPSHOT</version>
 		<relativePath>../../components-parent/pom.xml</relativePath>
 	</parent>
+
+	<!--
+	<parent>
+		<groupId>org.talend.daikon</groupId>
+		<artifactId>service-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	-->
+
 
 	<artifactId>components-api-service-rest-all-components</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
@@ -16,11 +26,12 @@
 
 	<properties>
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
-		<java.version>1.7</java.version>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.boot.version>1.4.1.RELEASE</spring.boot.version>
+		<daikon.version>0.13.0-SNAPSHOT</daikon.version>
 	</properties>
 
 	<dependencies>
@@ -46,19 +57,6 @@
 			<artifactId>components-api-service-rest</artifactId>
 			<version>0.15.0-SNAPSHOT</version>
 		</dependency>
-		<dependency><!-- this overides the parent definition that limited the artifact 
-				to tests -->
-			<groupId>org.talend.daikon</groupId>
-			<artifactId>daikon-spring</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.talend.components</groupId>
-			<artifactId>components-api-service-rest</artifactId>
-			<version>0.15.0-SNAPSHOT</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.talend.components</groupId>
 			<artifactId>components-api</artifactId>
@@ -66,15 +64,10 @@
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
+		<!-- spring boot -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.ops4j.pax.url</groupId>
-			<artifactId>pax-url-aether</artifactId>
-			<version>2.4.7</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

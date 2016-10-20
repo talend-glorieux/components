@@ -20,16 +20,13 @@ import org.talend.components.api.service.common.ComponentServiceImpl;
 @Configuration
 public class ComponentsSetup {
 
-    /** Id of the base component service bean. */
-    public static final String BASE_COMPONENT_SERVICE_ID="baseComponentService";
-
     /** This class' logger. */
     private static final Logger LOGGER = getLogger(ComponentsSetup.class);
 
     @Autowired
     private ApplicationContext context;
 
-    @Bean(name = BASE_COMPONENT_SERVICE_ID)
+    @Bean
     public ComponentService getComponentService() {
         return new ComponentServiceImpl(getComponentRegistry());
     }

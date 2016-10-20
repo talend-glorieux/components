@@ -4,14 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.talend.components</groupId>
-        <artifactId>components-parent</artifactId>
-        <version>0.15.0-SNAPSHOT</version>
-        <relativePath>../../components-parent/pom.xml</relativePath>
+        <groupId>org.talend.daikon</groupId>
+        <artifactId>service-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
 
 
-	<artifactId>components-api-service-rest</artifactId>
+    <artifactId>components-api-service-rest</artifactId>
 	<version>0.15.0-SNAPSHOT</version>
 
 	<name>Components REST API</name>
@@ -20,9 +19,12 @@
 		<java.version>1.8</java.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+        <daikon.version>0.13.0-SNAPSHOT</daikon.version>
 	</properties>
 
 	<dependencies>
+
+        <!-- spring dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -31,15 +33,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jetty</artifactId>
         </dependency>
+
+        <!-- talend dependencies -->
         <dependency>
-            <groupId>biz.aQute.bnd</groupId>
-            <artifactId>annotation</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <groupId>org.talend.components</groupId>
+            <artifactId>components-api-service-common</artifactId>
+            <version>0.15.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
@@ -52,19 +51,23 @@
             <version>0.15.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.mangofactory</groupId>
-            <artifactId>swagger-springmvc</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.talend.daikon</groupId>
             <artifactId>daikon-spring</artifactId>
+            <version>${daikon.version}</version>
         </dependency>
-       <dependency>
-           <groupId>org.talend.components</groupId>
-           <artifactId>components-api-service-common</artifactId>
-           <version>0.15.0-SNAPSHOT</version>
-       </dependency>
+
+        <dependency>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>annotation</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <!-- tests dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

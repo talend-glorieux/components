@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.talend.components.api.component.Connector;
@@ -20,7 +19,6 @@ import org.talend.components.service.spring.SpringTestApp;
 public class TDataSetInputDefinitionAndPropertiesTest {
 
     @Inject
-    @Qualifier(value = "baseComponentService")
     private ComponentService componentService;
 
     @Test
