@@ -1,5 +1,9 @@
 package org.talend.components.filedelimited;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,8 +27,8 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.DataRejectException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.service.ComponentService;
-import org.talend.components.api.service.internal.ComponentRegistry;
-import org.talend.components.api.service.internal.ComponentServiceImpl;
+import org.talend.components.api.service.common.ComponentRegistry;
+import org.talend.components.api.service.common.ComponentServiceImpl;
 import org.talend.components.api.test.AbstractComponentTest;
 import org.talend.components.api.test.ComponentTestUtils;
 import org.talend.components.common.EncodingTypeProperties;
@@ -36,15 +40,10 @@ import org.talend.components.filedelimited.tfileinputdelimited.TFileInputDelimit
 import org.talend.components.filedelimited.tfileinputdelimited.TFileInputDelimitedProperties;
 import org.talend.components.filedelimited.tfileoutputdelimited.TFileOutputDelimitedDefinition;
 import org.talend.components.filedelimited.tfileoutputdelimited.TFileOutputDelimitedProperties;
-import org.talend.components.filedelimited.wizard.FileDelimitedWizardProperties;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("nls")
 public class FileDelimitedTestBasic extends AbstractComponentTest {
@@ -155,8 +154,8 @@ public class FileDelimitedTestBasic extends AbstractComponentTest {
         return properties;
     }
 
-    protected FileDelimitedWizardProperties createWizaredProperties(TFileInputDelimitedProperties properties) {
-        FileDelimitedWizardProperties wizardProperties = new FileDelimitedWizardProperties("wizard");
+    protected FileDelimitedProperties createWizaredProperties(TFileInputDelimitedProperties properties) {
+        FileDelimitedProperties wizardProperties = new FileDelimitedProperties("wizard");
         wizardProperties.init();
         wizardProperties.copyValuesFrom(properties);
         return wizardProperties;
@@ -180,11 +179,11 @@ public class FileDelimitedTestBasic extends AbstractComponentTest {
                     }
 
                     LOGGER.debug("Row " + (index + 1) + " :" + sb.toString());
-                    sb.delete(0, sb.length());
                     successRecords.add(record);
                 } catch (DataRejectException dre) {
                     LOGGER.debug("Row " + (index + 1) + " :" + dre.getRejectInfo().get("errorMessage"));
                 }
+                sb.delete(0, sb.length());
             }
         } else {
             LOGGER.debug("Records list is empty!");
@@ -198,15 +197,15 @@ public class FileDelimitedTestBasic extends AbstractComponentTest {
         sink.initialize(adaptor, props);
         sink.validate(adaptor);
         FileDelimitedWriteOperation writeOperation = sink.createWriteOperation();
-        FileDelimitedWriter saleforceWriter = writeOperation.createWriter(adaptor);
+        FileDelimitedWriter delimitedWriter = writeOperation.createWriter(adaptor);
         Result result;
-        saleforceWriter.open("foo");
+        delimitedWriter.open("foo");
         try {
             for (IndexedRecord row : outputRows) {
-                saleforceWriter.write(row);
+                delimitedWriter.write(row);
             }
         } finally {
-            result = saleforceWriter.close();
+            result = delimitedWriter.close();
         }
         return result;
     }

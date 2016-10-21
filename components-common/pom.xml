@@ -34,13 +34,13 @@
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
-            <artifactId>components-api-service</artifactId>
+            <artifactId>components-api-service-common</artifactId>
             <version>0.15.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
-            <artifactId>components-api-service</artifactId>
+            <artifactId>components-api-service-common</artifactId>
             <version>0.15.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
@@ -50,21 +50,6 @@
             <artifactId>components-api</artifactId>
             <version>0.15.0-SNAPSHOT</version>
             <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.daikon</groupId>
-            <artifactId>daikon-spring</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

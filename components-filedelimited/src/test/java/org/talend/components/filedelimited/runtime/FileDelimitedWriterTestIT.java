@@ -1,11 +1,17 @@
 package org.talend.components.filedelimited.runtime;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.junit.Ignore;
@@ -16,10 +22,8 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.common.runtime.FileRuntimeHelper;
 import org.talend.components.filedelimited.FileDelimitedTestBasic;
 import org.talend.components.filedelimited.tfileoutputdelimited.TFileOutputDelimitedProperties;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.talend.daikon.avro.AvroUtils;
+import org.talend.daikon.avro.SchemaConstants;
 
 public class FileDelimitedWriterTestIT extends FileDelimitedTestBasic {
 
@@ -61,6 +65,31 @@ public class FileDelimitedWriterTestIT extends FileDelimitedTestBasic {
     @Test
     public void testOutputCsvStream() throws Throwable {
         testOutputCSV(true);
+    }
+
+    @Test
+    public void testWriteDecimal() throws Throwable {
+        String resources = getResourceFolder();
+        String outputFile = resources + "/out/test_write_decimal.csv";
+        String refFilePath = resources + "/ref_test_write_decimal.csv";
+        LOGGER.debug("Test file path: " + outputFile);
+        TFileOutputDelimitedProperties properties = createOutputProperties(outputFile, false);
+        Schema outputSchema = SchemaBuilder.builder().record("Schema").fields().name("TestBigDecimal")
+                .prop(SchemaConstants.TALEND_COLUMN_PRECISION, "10").prop(SchemaConstants.TALEND_COLUMN_PRECISION, "2")
+                .type(AvroUtils._decimal()).noDefault().endRecord();
+        properties.main.schema.setValue(outputSchema);
+        List<IndexedRecord> records = new ArrayList<>();
+        IndexedRecord r1 = new GenericData.Record(outputSchema);
+        r1.put(0, "3.1415926");
+        IndexedRecord r2 = new GenericData.Record(outputSchema);
+        r2.put(0, "9.1798");
+        records.add(r1);
+        records.add(r2);
+        // Delete generated empty file function not be checked
+        doWriteRows(properties, records);
+
+        assertTrue(FileRuntimeHelper.compareInTextMode(outputFile, refFilePath, getEncoding(properties.encoding)));
+        assertTrue(deleteFile(outputFile));
     }
 
     // Test FileOutputDelimited deleted generated empty file
@@ -187,6 +216,29 @@ public class FileDelimitedWriterTestIT extends FileDelimitedTestBasic {
         // properties.fileName.setValue(new FileOutputStream(new File(outputFile)));
         properties.compress.setValue(true);
         basicOutputTest(properties, refFile);
+
+    }
+
+    @Test
+    public void testOutputRowMode() throws Throwable {
+        String resources = getResourceFolder();
+        String outputFile = resources + "/out/test_output_row_mode.csv";
+        LOGGER.debug("Test file path: " + outputFile);
+
+        // Delimited mode
+        TFileOutputDelimitedProperties properties = createOutputProperties(outputFile, false);
+        properties.rowMode.setValue(true);
+        properties.targetIsStream.setValue(false); // Target is not stream
+        basicOutputTest(properties, resources + "/ref_test_output_delimited.csv");
+        properties.targetIsStream.setValue(true); // Target is stream
+        basicOutputTest(properties, resources + "/ref_test_output_delimited.csv");
+        // CSV mode
+        properties = createOutputProperties(outputFile, true);
+        properties.rowMode.setValue(true);
+        properties.targetIsStream.setValue(false); // Target is not stream
+        basicOutputTest(properties, resources + "/ref_test_output_csv.csv");
+        properties.targetIsStream.setValue(true); // Target is stream
+        basicOutputTest(properties, resources + "/ref_test_output_csv.csv");
 
     }
 

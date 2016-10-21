@@ -1,11 +1,12 @@
 
 package org.talend.components.fullexample.datastore;
 
-import org.talend.components.api.component.runtime.RuntimeInfo;
+import org.talend.components.common.dataset.DatasetProperties;
 import org.talend.components.common.dataset.DatasetProperties;
 import org.talend.components.common.datastore.DatastoreDefinition;
 import org.talend.components.common.datastore.DatastoreProperties;
 import org.talend.daikon.SimpleNamedThing;
+import org.talend.daikon.runtime.RuntimeInfo;
 
 /**
  * An example of a DatastoreDefinition.
@@ -21,7 +22,7 @@ public class FullExampleDatastoreDefinition extends SimpleNamedThing
 
     @Override
     public FullExampleDatastoreProperties createProperties() {
-        return new FullExampleDatastoreProperties(null);
+        return (FullExampleDatastoreProperties) new FullExampleDatastoreProperties(null).init();
     }
 
     @Override
@@ -33,4 +34,5 @@ public class FullExampleDatastoreDefinition extends SimpleNamedThing
     public DatasetProperties createDatasetProperties(DatastoreProperties storeProp) {
         return null;
     }
+
 }
