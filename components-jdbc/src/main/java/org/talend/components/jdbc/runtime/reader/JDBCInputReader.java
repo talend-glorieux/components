@@ -27,7 +27,6 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.jdbc.runtime.JDBCSource;
-import org.talend.components.jdbc.runtime.type.JDBCAvroRegistry;
 import org.talend.components.jdbc.runtime.type.JDBCResultSetIndexedRecordConverter;
 import org.talend.components.jdbc.tjdbcinput.TJDBCInputProperties;
 import org.talend.daikon.avro.AvroUtils;

@@ -28,7 +28,6 @@ import org.talend.components.jdbc.module.JDBCConnectionModule;
 import org.talend.components.jdbc.runtime.JDBCSink;
 import org.talend.components.jdbc.runtime.JDBCSource;
 import org.talend.components.jdbc.runtime.JDBCTemplate;
-import org.talend.components.jdbc.runtime.type.JDBCAvroRegistry;
 import org.talend.components.jdbc.runtime.writer.JDBCOutputWriter;
 import org.talend.components.jdbc.runtime.writer.JDBCRowWriter;
 import org.talend.components.jdbc.tjdbcinput.TJDBCInputDefinition;

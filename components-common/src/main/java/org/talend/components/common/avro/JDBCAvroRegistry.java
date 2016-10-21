@@ -1,4 +1,15 @@
-package org.talend.components.jdbc.runtime.type;
+package org.talend.components.common.avro;
+
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.SchemaBuilder;
+import org.talend.components.api.exception.ComponentException;
+import org.talend.daikon.avro.AvroRegistry;
+import org.talend.daikon.avro.AvroUtils;
+import org.talend.daikon.avro.SchemaConstants;
+import org.talend.daikon.avro.converter.AvroConverter;
+import org.talend.daikon.avro.converter.IndexedRecordConverter.UnmodifiableAdapterException;
+import org.talend.daikon.java8.SerializableFunction;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -6,18 +17,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.SchemaBuilder;
-import org.talend.components.api.exception.ComponentException;
-import org.talend.components.jdbc.tjdbcinput.TJDBCInputProperties;
-import org.talend.daikon.avro.AvroRegistry;
-import org.talend.daikon.avro.AvroUtils;
-import org.talend.daikon.avro.SchemaConstants;
-import org.talend.daikon.avro.converter.AvroConverter;
-import org.talend.daikon.avro.converter.IndexedRecordConverter.UnmodifiableAdapterException;
-import org.talend.daikon.java8.SerializableFunction;
 
 public class JDBCAvroRegistry extends AvroRegistry {
 
@@ -60,7 +59,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
     }
 
     private Schema inferSchemaResultSetMetaData(ResultSetMetaData metadata) throws SQLException {
-        List<Schema.Field> fields = new ArrayList<>();
+        List<Field> fields = new ArrayList<>();
 
         int count = metadata.getColumnCount();
         for (int i = 1; i <= count; i++) {
@@ -72,7 +71,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
             String fieldName = metadata.getColumnLabel(i);
             String dbColumnName = metadata.getColumnName(i);
 
-            Schema.Field field = sqlType2Avro(size, scale, dbtype, nullable, fieldName, dbColumnName, null);
+            Field field = sqlType2Avro(size, scale, dbtype, nullable, fieldName, dbColumnName, null);
 
             fields.add(field);
         }
@@ -80,9 +79,9 @@ public class JDBCAvroRegistry extends AvroRegistry {
         return Schema.createRecord("DYNAMIC", null, null, false, fields);
     }
 
-    private Schema.Field sqlType2Avro(int size, int scale, int dbtype, boolean nullable, String name, String dbColumnName,
+    private Field sqlType2Avro(int size, int scale, int dbtype, boolean nullable, String name, String dbColumnName,
             Object defaultValue) {
-        Schema.Field field = null;
+        Field field = null;
         Schema schema = null;
 
         switch (dbtype) {
@@ -180,9 +179,9 @@ public class JDBCAvroRegistry extends AvroRegistry {
         return field;
     }
 
-    private Schema.Field wrap(boolean nullable, Schema base, String name) {
+    private Field wrap(boolean nullable, Schema base, String name) {
         Schema schema = nullable ? SchemaBuilder.builder().nullable().type(base) : base;
-        return new Schema.Field(name, schema, null, (Object) null);
+        return new Field(name, schema, null, (Object) null);
     }
 
     public static JDBCAvroRegistry get() {
@@ -194,7 +193,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
             return null;
         }
 
-        List<Schema.Field> fields = new ArrayList<>();
+        List<Field> fields = new ArrayList<>();
         String tablename = metadata.getString("TABLE_NAME");
 
         do {
@@ -205,7 +204,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
             String columnName = metadata.getString("COLUMN_NAME");
             String defaultValue = metadata.getString("COLUMN_DEF");
 
-            Schema.Field field = sqlType2Avro(size, scale, dbtype, nullable, columnName, columnName, defaultValue);
+            Field field = sqlType2Avro(size, scale, dbtype, nullable, columnName, columnName, defaultValue);
 
             fields.add(field);
         } while (metadata.next());
@@ -221,7 +220,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
+                    boolean trimAll = influencer.trim();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -394,7 +393,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
+                    boolean trimAll = influencer.trim();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -437,12 +436,11 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = properties.trimStringOrCharColumns.getValue();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
 
-                        if (trimAll && result != null) {
+                        if (influencer.trim() && result != null) {
                             return result.trim();
                         }
 
@@ -458,7 +456,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
     abstract class JDBCConverter implements AvroConverter<ResultSet, Object> {
 
-        protected TJDBCInputProperties properties;
+        protected JDBCAvroRegistryInfluencer influencer;
 
         @Override
         public Schema getSchema() {
@@ -477,8 +475,8 @@ public class JDBCAvroRegistry extends AvroRegistry {
             throw new UnmodifiableAdapterException();
         }
 
-        public void setProperties(TJDBCInputProperties properties) {// it's a special code, not good
-            this.properties = properties;
+        public void setInfluencer(JDBCAvroRegistryInfluencer influencer) {
+            this.influencer = influencer;
         }
 
     }

@@ -34,7 +34,6 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.jdbc.runtime.JDBCRowSink;
 import org.talend.components.jdbc.runtime.JDBCTemplate;
-import org.talend.components.jdbc.runtime.type.JDBCAvroRegistry;
 import org.talend.components.jdbc.tjdbcrow.TJDBCRowProperties;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
