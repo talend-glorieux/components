@@ -1,4 +1,4 @@
-package org.talend.components.snowflake;
+package org.talend.components.snowflake.test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.snowflake.SnowflakeConnectionProperties;
 
 public class SnowflakeTestUtil {
 

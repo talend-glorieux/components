@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012-2016 Snowflake Computing Inc. All right reserved.
  */
-package org.talend.components.snowflake;
+package org.talend.components.snowflake.test;
 
 import com.snowflake.client.jdbc.SnowflakeConnectionV1;
 import com.snowflake.client.loader.LoadResultListener;

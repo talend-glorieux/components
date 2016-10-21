@@ -10,7 +10,13 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package org.talend.components.snowflake;
+package org.talend.components.snowflake.test;
+
+import static org.ops4j.pax.exam.CoreOptions.*;
+
+import java.util.Arrays;
+
+import javax.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,11 +31,9 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.talend.components.api.ComponentsPaxExamOptions;
 import org.talend.components.api.service.ComponentService;
-
-import javax.inject.Inject;
-import java.util.Arrays;
-
-import static org.ops4j.pax.exam.CoreOptions.*;
+import org.talend.components.snowflake.tsnowflakeconnection.TSnowflakeConnectionDefinition;
+import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputDefinition;
+import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputDefinition;
 
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
@@ -49,11 +53,9 @@ public class OsgiSnowflakeTestIT extends SnowflakeTest {
     static public Option[] getSnowflakePaxExamOption() {
         return options(composite(ComponentsPaxExamOptions.getOptions()), //
                 linkBundle("org.talend.components-components-common-bundle"), //
-                linkBundle("org.talend.components-components-common-tests").noStart(), //
                 linkBundle("org.talend.components-components-snowflake-bundle"), //
-                linkBundle("commons-beanutils-commons-beanutils"), //
-                linkBundle("org.apache.servicemix.bundles-org.apache.servicemix.bundles.commons-collections"), //
-                propagateSystemProperties("snowflake.account", "snowflake.password", "snowflake.warehouse", "snowflake.schema", "snowflake.db", "snowflake.user"));
+                propagateSystemProperties("snowflake.account", "snowflake.password", "snowflake.warehouse", "snowflake.schema",
+                        "snowflake.db", "snowflake.user"));
     }
 
     @Override
@@ -62,6 +64,13 @@ public class OsgiSnowflakeTestIT extends SnowflakeTest {
     }
 
     @Test
+    public void checkComponentExists() {
+        assertComponentIsRegistered(TSnowflakeInputDefinition.COMPONENT_NAME);
+        assertComponentIsRegistered(TSnowflakeOutputDefinition.COMPONENT_NAME);
+        assertComponentIsRegistered(TSnowflakeConnectionDefinition.COMPONENT_NAME);
+    }
+
+    //@Test
     public void showbundleContext() throws InvalidSyntaxException {
         System.out.println(" CLASS IS LOCATED :" + this.getClass().getResource(""));
         System.out.println(" ALL BUNDLES" + Arrays.toString(bc.getBundles()));
@@ -70,10 +79,10 @@ public class OsgiSnowflakeTestIT extends SnowflakeTest {
         Bundle[] bundles = bc.getBundles();
         for (Bundle bnd : bundles) {
             System.out.println("Bundle :" + bnd.toString());
-            if (bnd.getSymbolicName().equals("org.talend.components.api.service")) {
-                System.out.println("Bundle :" + bnd.toString());
+            if (bnd.getSymbolicName().equals("org.talend.components.snowflake")) {
+                System.out.println("Bundle state:" + bnd.getState());
             }
         }
-        System.out.println("XXX");
+        System.out.println("component service: " + getComponentService());
     }
 }
