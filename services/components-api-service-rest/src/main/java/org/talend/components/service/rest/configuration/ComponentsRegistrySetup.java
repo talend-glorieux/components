@@ -18,10 +18,10 @@ import org.talend.components.api.service.common.ComponentServiceImpl;
  * Configuration that deals with ComponentRegistry setup.
  */
 @Configuration
-public class ComponentsSetup {
+public class ComponentsRegistrySetup {
 
     /** This class' logger. */
-    private static final Logger LOGGER = getLogger(ComponentsSetup.class);
+    private static final Logger LOGGER = getLogger(ComponentsRegistrySetup.class);
 
     @Autowired
     private ApplicationContext context;

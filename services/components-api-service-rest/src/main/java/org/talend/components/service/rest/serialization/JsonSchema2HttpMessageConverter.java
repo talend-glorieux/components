@@ -1,4 +1,4 @@
-package org.talend.components.service.rest;
+package org.talend.components.service.rest.serialization;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
