@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
-import org.talend.components.jdbc.runtime.type.JDBCAvroRegistry.JDBCConverter;
+import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.jdbc.tjdbcinput.TJDBCInputProperties;
 import org.talend.daikon.avro.converter.AvroConverter;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
@@ -78,10 +78,10 @@ public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConvert
                 for (int j = 0; j < names.length; j++) {
                     Field f = getSchema().getFields().get(j);
                     names[j] = f.name();
-                    JDBCConverter jdbcConverter = JDBCAvroRegistry.get().getConverter(f);
+                    JDBCAvroRegistry.JDBCConverter jdbcConverter = JDBCAvroRegistry.get().getConverter(f);
 
                     if (properties != null) {
-                        jdbcConverter.setProperties(properties);
+                        jdbcConverter.setInfluencer(properties);
                     }
 
                     fieldConverter[j] = jdbcConverter;

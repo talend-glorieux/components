@@ -32,6 +32,7 @@ import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
+import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.jdbc.runtime.JDBCSink;
 import org.talend.components.jdbc.runtime.sqlbuilder.JDBCSQLBuilder;
 import org.talend.components.jdbc.tjdbcoutput.TJDBCOutputProperties;

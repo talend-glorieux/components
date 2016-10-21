@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.talend.components.api.component.runtime.Reader;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.container.RuntimeContainer;
+import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.jdbc.module.JDBCConnectionModule;
 import org.talend.components.jdbc.runtime.JDBCSink;
 import org.talend.components.jdbc.runtime.JDBCSource;

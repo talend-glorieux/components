@@ -454,7 +454,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
         }
     }
 
-    abstract class JDBCConverter implements AvroConverter<ResultSet, Object> {
+    public abstract class JDBCConverter implements AvroConverter<ResultSet, Object> {
 
         protected JDBCAvroRegistryInfluencer influencer;
 
