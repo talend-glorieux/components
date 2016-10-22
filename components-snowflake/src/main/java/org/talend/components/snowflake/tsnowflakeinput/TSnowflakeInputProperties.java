@@ -17,9 +17,6 @@ import org.talend.daikon.properties.property.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author user
- */
 public class TSnowflakeInputProperties extends SnowflakeConnectionTableProperties {
 
     public Property<String> condition = newProperty("condition"); //$NON-NLS-1$
@@ -32,11 +29,6 @@ public class TSnowflakeInputProperties extends SnowflakeConnectionTablePropertie
         super(name);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.talend.components.snowflake.SnowflakeProvideConnectionProperties#getConnectionProperties()
-     */
     @Override
     public SnowflakeConnectionProperties getConnectionProperties() {
         return this.connection;

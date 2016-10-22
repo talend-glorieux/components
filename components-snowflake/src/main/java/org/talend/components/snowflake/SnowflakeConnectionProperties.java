@@ -7,6 +7,7 @@ import static org.talend.daikon.properties.property.PropertyFactory.newString;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.api.properties.ComponentReferencePropertiesEnclosing;
+import org.talend.components.common.ProxyProperties;
 import org.talend.components.common.UserPasswordProperties;
 import org.talend.components.snowflake.runtime.SnowflakeSourceOrSink;
 import org.talend.components.snowflake.tsnowflakeconnection.TSnowflakeConnectionDefinition;
@@ -44,11 +45,9 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         }
     }
 
-    // Ref: https://docs.snowflake.net/manuals/user-guide/jdbc-configure.html
-    public UserPasswordProperties userPassword = new UserPasswordProperties(USERPASSWORD);
-
     public Property<String> account = newString("account").setRequired(); //$NON-NLS-1$
 
+    public UserPasswordProperties userPassword = new UserPasswordProperties(USERPASSWORD);
 
     public Property<String> warehouse = newString("warehouse"); //$NON-NLS-1$
 
@@ -89,25 +88,25 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
 
         Form wizardForm = Form.create(this, FORM_WIZARD);
         wizardForm.addRow(name);
-        wizardForm.addRow(userPassword.getForm(Form.MAIN));
         wizardForm.addRow(account);
+        wizardForm.addRow(userPassword.getForm(Form.MAIN));
         wizardForm.addRow(warehouse);
-        wizardForm.addRow(db);
         wizardForm.addRow(schemaName);
+        wizardForm.addRow(db);
         wizardForm.addRow(widget(advanced).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
         wizardForm.addColumn(widget(testConnection).setLongRunning(true).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
 
         Form mainForm = Form.create(this, Form.MAIN);
-        mainForm.addRow(userPassword.getForm(Form.MAIN));
         mainForm.addRow(account);
+        mainForm.addRow(userPassword.getForm(Form.MAIN));
+        mainForm.addRow(warehouse);
+        mainForm.addRow(schemaName);
+        mainForm.addRow(db);
 
         Form advancedForm = Form.create(this, Form.ADVANCED);
         advancedForm.addRow(widget(tracing).setWidgetType(Widget.ENUMERATION_WIDGET_TYPE));
         advancedForm.addRow(role);
         advanced.setFormtoShow(advancedForm);
-
-        // form.addRow(schema.getForm(Form.REFERENCE));
-        // form.addRow(filename);
 
         // A form for a reference to a connection, used in a tSnowflakeInput for example
         Form refForm = Form.create(this, Form.REFERENCE);
@@ -124,6 +123,14 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
         refreshLayout(getForm(Form.ADVANCED));
     }
 
+    protected void setHiddenProps(Form form, boolean hidden) {
+        form.getWidget(USERPASSWORD).setHidden(hidden);
+        form.getWidget(account.getName()).setHidden(hidden);
+        form.getWidget(warehouse.getName()).setHidden(hidden);
+        form.getWidget(schemaName.getName()).setHidden(hidden);
+        form.getWidget(db.getName()).setHidden(hidden);
+    }
+
     @Override
     public void refreshLayout(Form form) {
         super.refreshLayout(form);
@@ -133,13 +140,11 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
                 && refComponentIdValue.startsWith(TSnowflakeConnectionDefinition.COMPONENT_NAME);
         if (form.getName().equals(Form.MAIN) || form.getName().equals(FORM_WIZARD)) {
             if (useOtherConnection) {
-                form.getWidget(USERPASSWORD).setHidden(true);
-                form.getWidget(account.getName()).setHidden(true);
+                setHiddenProps(form, true);
             } else {
+                setHiddenProps(form, false);
                 // Do nothing
                 form.setHidden(false);
-                form.getWidget(USERPASSWORD).setHidden(false);
-                form.getWidget(account.getName()).setHidden(false);
             }
         }
 
@@ -148,7 +153,6 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
                 form.setHidden(true);
             } else {
                 form.setHidden(false);
-                // TODO: check if anything else needs to be handled
             }
         }
     }
@@ -168,16 +172,6 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
     public SnowflakeConnectionProperties getConnectionProperties() {
         return this;
     }
-
-    /*
-     * @Override
-     * protected Set<PropertyPathConnector> getAllSchemaPropertiesConnectors(boolean isOutputComponent) {
-     * if (isOutputComponent) {
-     * return Collections.singleton(mainConnector);
-     * }
-     * return Collections.emptySet();
-     * }
-     */
 
     public String getReferencedComponentId() {
         return referencedComponent.componentInstanceId.getStringValue();

@@ -4,6 +4,8 @@
 package org.talend.components.snowflake.runtime;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.common.avro.JDBCAvroRegistry;
+import org.talend.components.common.runtime.ProxyPropertiesRuntimeHelper;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.components.snowflake.SnowflakeProvideConnectionProperties;

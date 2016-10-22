@@ -3,19 +3,58 @@ package org.talend.components.snowflake.tsnowflakeoutput;
 import static org.talend.daikon.properties.presentation.Widget.widget;
 import static org.talend.daikon.properties.property.PropertyFactory.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.avro.Schema;
+import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.ISchemaListener;
-import org.talend.components.snowflake.SnowflakeOutputProperties;
+import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.common.SchemaProperties;
+import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
+import org.talend.components.snowflake.SnowflakeTableProperties;
 import org.talend.daikon.avro.SchemaConstants;
+import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
+public class TSnowflakeOutputProperties extends SnowflakeConnectionTableProperties {
+
+    public enum OutputAction {
+        INSERT,
+        UPDATE,
+        UPSERT,
+        DELETE
+    }
+
+    public Property<OutputAction> outputAction = newEnum("outputAction", OutputAction.class); // $NON-NLS-1$
+
+    public Property<String> upsertKeyColumn = newString("upsertKeyColumn"); //$NON-NLS-1$
+
+    protected transient PropertyPathConnector FLOW_CONNECTOR = new PropertyPathConnector(Connector.MAIN_NAME, "schemaFlow");
+
+    protected transient PropertyPathConnector REJECT_CONNECTOR = new PropertyPathConnector(Connector.REJECT_NAME, "schemaReject");
+
+    public SchemaProperties schemaFlow = new SchemaProperties("schemaFlow"); //$NON-NLS-1$
+
+    public SchemaProperties schemaReject = new SchemaProperties("schemaReject"); //$NON-NLS-1$
+
+    // Have to use an explicit class to get the override of afterTableName(), an anonymous
+    // class cannot be public and thus cannot be called.
+    public class TableSubclass extends SnowflakeTableProperties {
+
+        public TableSubclass(String name) {
+            super(name);
+        }
+
+        @Override
+        public ValidationResult afterTableName() throws Exception {
+            ValidationResult validationResult = super.afterTableName();
+            List<String> fieldNames = getFieldNames(main.schema);
+            upsertKeyColumn.setPossibleValues(fieldNames);
+            return validationResult;
+        }
+    }
 
     public static final String FIELD_SNOWFLAKE_ID = "snowflake_id";
 
@@ -25,21 +64,6 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
 
     public static final String FIELD_ERROR_MESSAGE = "errorMessage";
 
-    //
-    // TODO: check necessary fields
-    //
-    public Property<Boolean> extendInsert = newBoolean("extendInsert", true); //$NON-NLS-1$
-
-    public Property<Boolean> ceaseForError = newBoolean("ceaseForError", true); //$NON-NLS-1$
-
-    public Property<Boolean> ignoreNull = newBoolean("ignoreNull"); //$NON-NLS-1$
-
-    public Property<Boolean> retrieveInsertId = newBoolean("retrieveInsertId"); //$NON-NLS-1$
-
-    public Property<Integer> commitLevel = newInteger("commitLevel", 200); //$NON-NLS-1$
-
-    // should be file
-    public Property<String> logFileName = newString("logFileName"); //$NON-NLS-1$
 
     public TSnowflakeOutputProperties(String name) {
         super(name);
@@ -48,6 +72,12 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
     @Override
     public void setupProperties() {
         super.setupProperties();
+
+        outputAction.setValue(OutputAction.INSERT);
+
+        table = new TableSubclass("table");
+        table.connection = connection;
+        table.setupProperties();
 
         table.setSchemaListener(new ISchemaListener() {
 
@@ -59,12 +89,53 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
         });
     }
 
+    @Override
+    public void setupLayout() {
+        super.setupLayout();
+        Form mainForm = getForm(Form.MAIN);
+        mainForm.addRow(outputAction);
+        mainForm.addColumn(widget(upsertKeyColumn).setWidgetType(Widget.ENUMERATION_WIDGET_TYPE));
+    }
+
+    public void afterOutputAction() {
+        refreshLayout(getForm(Form.MAIN));
+    }
+
+    @Override
+    public void refreshLayout(Form form) {
+        super.refreshLayout(form);
+
+        if (form.getName().equals(Form.MAIN)) {
+            Form advForm = getForm(Form.ADVANCED);
+            if (advForm != null) {
+                boolean isUpsert = OutputAction.UPSERT.equals(outputAction.getValue());
+                form.getWidget(upsertKeyColumn.getName()).setHidden(!isUpsert);
+                if (isUpsert) {
+                    beforeUpsertKeyColumn();
+                }
+            }
+        }
+    }
+
+    protected List<String> getFieldNames(Property schema) {
+        Schema s = (Schema) schema.getValue();
+        List<String> fieldNames = new ArrayList<>();
+        for (Schema.Field f : s.getFields()) {
+            fieldNames.add(f.name());
+        }
+        return fieldNames;
+    }
+
+    public void beforeUpsertKeyColumn() {
+        upsertKeyColumn.setPossibleValues(getFieldNames(table.main.schema));
+    }
+
     private void updateOutputSchemas() {
         Schema inputSchema = table.main.schema.getValue();
 
         Schema.Field field = null;
 
-        if (!extendInsert.getValue() && retrieveInsertId.getValue() && OutputAction.INSERT.equals(outputAction.getValue())) {
+        if (OutputAction.INSERT.equals(outputAction.getValue())) {
 
             final List<Schema.Field> additionalMainFields = new ArrayList<Schema.Field>();
 
@@ -132,40 +203,16 @@ public class TSnowflakeOutputProperties extends SnowflakeOutputProperties {
     }
 
     @Override
-    public void setupLayout() {
-        super.setupLayout();
-
-        Form advancedForm = getForm(Form.ADVANCED);
-        advancedForm.addRow(extendInsert);
-        advancedForm.addRow(ceaseForError);
-        advancedForm.addRow(ignoreNull);
-        advancedForm.addRow(retrieveInsertId);
-        advancedForm.addRow(commitLevel);
-        advancedForm.addRow(widget(logFileName).setWidgetType(Widget.FILE_WIDGET_TYPE));
-    }
-
-    public void afterExtendInsert() {
-        refreshLayout(getForm(Form.ADVANCED));
-        updateOutputSchemas();
-    }
-
-    public void afterRetrieveInsertId() {
-        refreshLayout(getForm(Form.ADVANCED));
-        updateOutputSchemas();
-    }
-
-    @Override
-    public void refreshLayout(Form form) {
-        super.refreshLayout(form);
-
-        if (form.getName().equals(Form.ADVANCED)) {
-
-            form.getWidget("commitLevel").setHidden(!extendInsert.getValue());
-            form.getWidget("retrieveInsertId")
-                    .setHidden(extendInsert.getValue() || !OutputAction.INSERT.equals(outputAction.getValue()));
-            form.getWidget("ignoreNull").setHidden(!(OutputAction.UPDATE.equals(outputAction.getValue())
-                    || OutputAction.UPSERT.equals(outputAction.getValue())));
+    protected Set<PropertyPathConnector> getAllSchemaPropertiesConnectors(boolean isOutputConnection) {
+        HashSet<PropertyPathConnector> connectors = new HashSet<>();
+        if (isOutputConnection) {
+            connectors.add(FLOW_CONNECTOR);
+            connectors.add(REJECT_CONNECTOR);
+        } else {
+            connectors.add(MAIN_CONNECTOR);
         }
+        return connectors;
     }
+
 
 }

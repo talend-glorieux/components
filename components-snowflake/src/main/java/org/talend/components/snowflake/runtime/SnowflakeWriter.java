@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.talend.components.snowflake.SnowflakeOutputProperties.OutputAction.UPSERT;
+import static org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputProperties.OutputAction.UPSERT;
 
 final class SnowflakeWriter implements Writer<Result> {
 
