@@ -1,14 +1,14 @@
-package org.talend.components.jdbc.runtime.type;
-
-import java.sql.ResultSet;
+package org.talend.components.common.avro;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
-import org.talend.components.common.avro.JDBCAvroRegistry;
-import org.talend.components.jdbc.tjdbcinput.TJDBCInputProperties;
 import org.talend.daikon.avro.converter.AvroConverter;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
+import org.talend.daikon.exception.TalendRuntimeException;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConverter<ResultSet, IndexedRecord> {
 
@@ -16,7 +16,9 @@ public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConvert
 
     private String names[];
 
-    /** The cached AvroConverter objects for the fields of this record. */
+    /**
+     * The cached AvroConverter objects for the fields of this record.
+     */
     @SuppressWarnings("rawtypes")
     protected transient AvroConverter[] fieldConverter;
 
@@ -28,6 +30,17 @@ public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConvert
     @Override
     public void setSchema(Schema schema) {
         this.schema = schema;
+        names = new String[getSchema().getFields().size()];
+        fieldConverter = new AvroConverter[names.length];
+        for (int j = 0; j < names.length; j++) {
+            Field f = getSchema().getFields().get(j);
+            names[j] = f.name();
+            JDBCAvroRegistry.JDBCConverter jdbcConverter = JDBCAvroRegistry.get().getConverter(f);
+            if (influencer != null) {
+                jdbcConverter.setInfluencer(influencer);
+            }
+            fieldConverter[j] = jdbcConverter;
+        }
     }
 
     @Override
@@ -45,18 +58,25 @@ public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConvert
         return new ResultSetIndexedRecord(value);
     }
 
-    private TJDBCInputProperties properties;
+    private JDBCAvroRegistryInfluencer influencer;
 
-    public void setProperties(TJDBCInputProperties properties) {
-        this.properties = properties;
+    public void setInfluencer(JDBCAvroRegistryInfluencer influencer) {
+        this.influencer = influencer;
     }
 
     private class ResultSetIndexedRecord implements IndexedRecord {
 
-        private final ResultSet value;
+        private Object[] values;
 
-        public ResultSetIndexedRecord(ResultSet value) {
-            this.value = value;
+        public ResultSetIndexedRecord(ResultSet resultSet) {
+            try {
+                values = new Object[resultSet.getMetaData().getColumnCount()];
+                for (int i = 0; i < values.length; i++) {
+                    values[i] = fieldConverter[i].convertToAvro(resultSet);
+                }
+            } catch (SQLException e) {
+                TalendRuntimeException.unexpectedException(e);
+            }
         }
 
         @Override
@@ -69,26 +89,9 @@ public class JDBCResultSetIndexedRecordConverter implements IndexedRecordConvert
             throw new UnmodifiableAdapterException();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public Object get(int i) {
-            if (names == null) {
-                names = new String[getSchema().getFields().size()];
-                fieldConverter = new AvroConverter[names.length];
-                for (int j = 0; j < names.length; j++) {
-                    Field f = getSchema().getFields().get(j);
-                    names[j] = f.name();
-                    JDBCAvroRegistry.JDBCConverter jdbcConverter = JDBCAvroRegistry.get().getConverter(f);
-
-                    if (properties != null) {
-                        jdbcConverter.setInfluencer(properties);
-                    }
-
-                    fieldConverter[j] = jdbcConverter;
-                }
-            }
-
-            return fieldConverter[i].convertToAvro(value);
+            return values[i];
         }
     }
 

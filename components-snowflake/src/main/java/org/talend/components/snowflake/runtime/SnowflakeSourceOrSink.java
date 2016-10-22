@@ -17,6 +17,7 @@ import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.components.snowflake.SnowflakeProvideConnectionProperties;
@@ -25,6 +26,7 @@ import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
 import org.talend.daikon.avro.SchemaConstants;
+import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.ValidationResult.Result;
 
@@ -172,28 +174,27 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
         return getSchemaNames(connect(container).getConnection());
     }
 
-    /**
-     * Fetches the list of tables names in a database connection
-     *
-     * @param connection
-     * @return
-     * @throws IOException
-     */
-    protected List<NamedThing> getSchemaNames(Connection connection) throws IOException {
-
+    protected String getCatalog() {
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        String catalog = null  /*connProps.db.getStringValue()*/;
-        String dbSchema = null  /*connProps.schema.getStringValue()*/;
+        return connProps.db.getStringValue();
+    }
 
+    protected String getDbSchema() {
+        SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
+        return connProps.schemaName.getStringValue();
+    }
+
+
+    protected List<NamedThing> getSchemaNames(Connection connection) throws IOException {
         // Returns the list with a table names (for the wh, db and schema)
         List<NamedThing> returnList = new ArrayList<>();
         try {
             DatabaseMetaData metaData = connection.getMetaData();
 
             // Fetch all tables in the db and schema provided
-            String[] types = { "TABLE" };
+            String[] types = {"TABLE"};
 
-            ResultSet resultIter = metaData.getTables(catalog, dbSchema, null, types);
+            ResultSet resultIter = metaData.getTables(getCatalog(), getDbSchema(), null, types);
 
             // ResultSet resultIter = metaData.getCatalogs();
             String tableName = null;
@@ -202,7 +203,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
                 returnList.add(new SimpleNamedThing(tableName, tableName));
             }
         } catch (SQLException se) {
-            // TODO: Handle this
+            throw new IOException(se);
         }
         return returnList;
     }
@@ -226,50 +227,38 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
     }
 
     protected Schema getSchema(Connection connection, String tableName) throws IOException {
-        String catalog = null/*properties.getConnectionProperties().db.getStringValue()*/;
-        String dbSchema = null/*properties.getConnectionProperties().schema.getStringValue()*/;
-
         Schema tableSchema = null;
 
         try {
             DatabaseMetaData metaData = connection.getMetaData();
 
-            ResultSet resultIter = metaData.getColumns(catalog, dbSchema, tableName, null);
-            if (resultIter.next()) {
-                tableSchema = SnowflakeAvroRegistry.get().inferSchema(resultIter);
+            ResultSet resultSet = metaData.getColumns(getCatalog(), getDbSchema(), tableName, null);
+            tableSchema = JDBCAvroRegistry.get().inferSchema(resultSet);
 
-                // Update the schema with Primary Key details
-                if (null != tableSchema) {
-                    ResultSet keysIter = metaData.getPrimaryKeys(catalog, dbSchema, tableName);
+            // Update the schema with Primary Key details
+            // FIXME - move this into the inferSchema stuff
+            if (null != tableSchema) {
+                ResultSet keysIter = metaData.getPrimaryKeys(properties.getConnectionProperties().db.getStringValue(), null, tableName);
 
-                    List<String> pkColumns = new ArrayList<>(); // List of Primary Key columns for this table
-                    while (keysIter.next()) {
-                        pkColumns.add(keysIter.getString("COLUMN_NAME"));
-                    }
-
-                    for (Field f : tableSchema.getFields()) {
-                        if (pkColumns.contains(f.schema().getName())) {
-                            f.schema().addProp(SchemaConstants.TALEND_COLUMN_IS_KEY, true);
-                        }
-                    }
+                List<String> pkColumns = new ArrayList<>(); // List of Primary Key columns for this table
+                while (keysIter.next()) {
+                    pkColumns.add(keysIter.getString("COLUMN_NAME"));
                 }
 
+                for (Field f : tableSchema.getFields()) {
+                    if (pkColumns.contains(f.name())) {
+                        f.schema().addProp(SchemaConstants.TALEND_COLUMN_IS_KEY, "true");
+                    }
+                }
             }
 
         } catch (SQLException se) {
-            // TODO: Handle this.. logger
+            TalendRuntimeException.unexpectedException(se);
         }
 
         return tableSchema;
 
     }
-
-    // -------------------------------------------------------------------------------------
-
-    /**
-     * Inner class.<br>
-     * Custom driver wrapper class
-     */
 
     public class DriverWrapper implements Driver {
 

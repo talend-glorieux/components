@@ -37,7 +37,7 @@ import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputDefiniti
 
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
-public class OsgiSnowflakeTestIT extends SnowflakeTest {
+public class OsgiSnowflakeTestIT extends SnowflakeTestIT {
 
     @Inject
     ComponentService osgiCompService;

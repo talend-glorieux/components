@@ -8,10 +8,12 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
+import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.components.snowflake.tsnowflakeoutput.TSnowflakeOutputProperties;
 import org.talend.daikon.avro.AvroUtils;
+import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 import java.io.IOException;
@@ -21,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.talend.components.snowflake.SnowflakeOutputProperties.OutputAction.UPSERT;
 
 final class SnowflakeWriter implements Writer<Result> {
 
@@ -206,17 +210,27 @@ final class SnowflakeWriter implements Writer<Result> {
         }
 
         List<Field> columns = mainSchema.getFields();
+        List<String> keyStr = new ArrayList();
         List<String> columnsStr = new ArrayList();
         int i = 0;
         for (Field f : columns) {
             columnsStr.add(f.name());
+            //if (f.schema().getProp(SchemaConstants.TALEND_COLUMN_IS_KEY) != null)
+            String key = f.schema().getProp(SchemaConstants.TALEND_COLUMN_IS_KEY);
+            if (key != null)
+                keyStr.add(f.name());
         }
 
         row = new Object[columnsStr.size()];
 
-// UPsert key LoaderProperties.key (is this used in other things?)
-
         prop.put(LoaderProperty.columns, columnsStr);
+        if (sprops.outputAction.getValue() == UPSERT) {
+            keyStr.clear();
+            keyStr.add(sprops.upsertKeyColumn.getValue());
+        } else {
+            if (keyStr.size() > 0)
+                prop.put(LoaderProperty.keys, keyStr);
+        }
 
         prop.put(LoaderProperty.remoteStage, "~");
 
@@ -234,7 +248,7 @@ final class SnowflakeWriter implements Writer<Result> {
         }
 
         if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) SnowflakeAvroRegistry.get()
+            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) JDBCAvroRegistry.get()
                     .createIndexedRecordConverter(datum.getClass());
         }
         IndexedRecord input = factory.convertToAvro(datum);

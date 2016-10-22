@@ -10,7 +10,7 @@ import org.talend.components.service.spring.SpringTestApp;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = SpringTestApp.class)
-public class SpringSnowflakeTestIT extends SnowflakeTest {
+public class SpringSnowflakeTestIT extends SnowflakeTestIT {
 
     @Inject
     ComponentService componentService;

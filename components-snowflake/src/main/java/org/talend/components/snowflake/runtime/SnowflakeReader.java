@@ -1,7 +1,11 @@
 package org.talend.components.snowflake.runtime;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
@@ -9,32 +13,41 @@ import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
+import org.talend.components.api.exception.ComponentException;
+import org.talend.components.common.avro.JDBCResultSetIndexedRecordConverter;
 import org.talend.components.snowflake.SnowflakeConnectionTableProperties;
 import org.talend.components.snowflake.connection.SnowflakeNativeConnection;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputProperties;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
-/**
- * Simple implementation of a reader.
- */
-public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
+public class SnowflakeReader<T> extends AbstractBoundedReader<IndexedRecord> {
 
     private transient SnowflakeNativeConnection connection;
 
-    private transient IndexedRecordConverter<?, IndexedRecord> factory;
+    private transient JDBCResultSetIndexedRecordConverter factory;
 
-    protected transient Schema querySchema;
-
-    protected SnowflakeConnectionTableProperties properties;
+    protected TSnowflakeInputProperties properties;
 
     protected int dataCount;
 
     private RuntimeContainer container;
 
-    public SnowflakeReader(RuntimeContainer container, BoundedSource source) {
+    protected ResultSet resultSet;
+
+    private transient Schema querySchema;
+
+    private Statement statement;
+
+    private Result result;
+
+
+    public SnowflakeReader(RuntimeContainer container, BoundedSource source, TSnowflakeInputProperties props) throws IOException {
         super(source);
         this.container = container;
+        this.properties = props;
+        factory = new JDBCResultSetIndexedRecordConverter();
+        factory.setSchema(getSchema());
     }
 
     protected SnowflakeNativeConnection getConnection() throws IOException {
@@ -42,14 +55,6 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
             connection = ((SnowflakeSource) getCurrentSource()).connect(container);
         }
         return connection;
-    }
-
-    protected IndexedRecordConverter<?, IndexedRecord> getFactory() throws IOException {
-        if (null == factory) {
-            factory = new SnowflakeResultSetAdapterFactory();
-            factory.setSchema(getSchema());
-        }
-        return factory;
     }
 
     protected Schema getSchema() throws IOException {
@@ -66,15 +71,12 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
         return querySchema;
     }
 
-    protected String getQueryString(SnowflakeConnectionTableProperties properties) throws IOException {
+    protected String getQueryString() throws IOException {
         String condition = null;
-        if (properties instanceof TSnowflakeInputProperties) {
-            TSnowflakeInputProperties inProperties = (TSnowflakeInputProperties) properties;
-            if (inProperties.manualQuery.getValue()) {
-                return inProperties.query.getStringValue();
-            } else {
-                condition = inProperties.condition.getStringValue();
-            }
+        if (properties.manualQuery.getValue()) {
+            return properties.query.getStringValue();
+        } else {
+            condition = properties.condition.getStringValue();
         }
         StringBuilder sb = new StringBuilder();
         sb.append("select "); //$NON-NLS-1$
@@ -94,36 +96,66 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
         return sb.toString();
     }
 
-    /*
-     * @Override
-     * public boolean start() throws IOException {
-     * started = true;
-     * LOGGER.debug("open: " + filename); //$NON-NLS-1$
-     * reader = new BufferedReader(new FileReader(filename));
-     * current = reader.readLine();
-     * return current != null;
-     * }
-     * 
-     * @Override
-     * public boolean advance() throws IOException {
-     * current = reader.readLine();
-     * return current != null;
-     * }
-     * 
-     * @Override
-     * public String getCurrent() throws NoSuchElementException {
-     * if (!started) {
-     * throw new NoSuchElementException();
-     * }
-     * return current;
-     * }
-     */
+
+    @Override
+    public boolean start() throws IOException {
+        result = new Result();
+        try {
+            statement = getConnection().getConnection().createStatement();
+            resultSet = statement.executeQuery(getQueryString());
+            return haveNext();
+        } catch (Exception e) {
+            throw new ComponentException(e);
+        }
+    }
+
+    private boolean haveNext() throws SQLException {
+        boolean haveNext = resultSet.next();
+
+        if (haveNext) {
+            result.totalCount++;
+        }
+
+        return haveNext;
+    }
+
+    @Override
+    public boolean advance() throws IOException {
+        try {
+            return haveNext();
+        } catch (SQLException e) {
+            throw new ComponentException(e);
+        }
+    }
+
+    @Override
+    public IndexedRecord getCurrent() throws NoSuchElementException {
+        try {
+            return factory.convertToAvro(resultSet);
+        } catch (Exception e) {
+            throw new ComponentException(e);
+        }
+    }
+
     @Override
     public void close() throws IOException {
-        /*
-         * reader.close();
-         * LOGGER.debug("close: " + filename); //$NON-NLS-1$
-         */
+        try {
+            if (resultSet != null) {
+                resultSet.close();
+                resultSet = null;
+            }
+
+            if (statement != null) {
+                statement.close();
+                statement = null;
+            }
+
+            if (connection != null) {
+                getConnection().getConnection().close();
+            }
+        } catch (SQLException e) {
+            throw new ComponentException(e);
+        }
     }
 
     @Override
@@ -132,5 +164,6 @@ public abstract class SnowflakeReader<T> extends AbstractBoundedReader<T> {
         result.totalCount = dataCount;
         return result.toMap();
     }
+
 
 }

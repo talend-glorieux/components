@@ -1,5 +1,6 @@
 package org.talend.components.snowflake.runtime;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputProperties;
+import org.talend.daikon.exception.TalendRuntimeException;
 
 /**
  * The SnowflakeSource provides the mechanism to supply data to other
@@ -51,9 +53,13 @@ public class SnowflakeSource extends SnowflakeSourceOrSink implements BoundedSou
     public BoundedReader createReader(RuntimeContainer container) {
         if (properties instanceof TSnowflakeInputProperties) {
             TSnowflakeInputProperties sfInProps = (TSnowflakeInputProperties) properties;
-            return new SnowflakeInputReader(container, this, sfInProps);
+            try {
+                return new SnowflakeReader(container, this, sfInProps);
+            } catch (IOException e) {
+                TalendRuntimeException.unexpectedException(e);
+            }
         }
-        // Should not reach here...
+        TalendRuntimeException.unexpectedException("Unknown properties: " + properties);
         return null;
     }
 

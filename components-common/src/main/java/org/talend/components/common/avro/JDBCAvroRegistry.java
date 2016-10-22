@@ -55,14 +55,16 @@ public class JDBCAvroRegistry extends AvroRegistry {
             }
 
         });
-
     }
 
     private Schema inferSchemaResultSetMetaData(ResultSetMetaData metadata) throws SQLException {
         List<Field> fields = new ArrayList<>();
 
+        String tableName = null;
         int count = metadata.getColumnCount();
         for (int i = 1; i <= count; i++) {
+            if (tableName == null)
+                tableName = metadata.getTableName(i);
             int size = metadata.getPrecision(i);
             int scale = metadata.getScale(i);
             boolean nullable = ResultSetMetaData.columnNullable == metadata.isNullable(i);
@@ -75,8 +77,31 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
             fields.add(field);
         }
+        return Schema.createRecord(tableName, null, null, false, fields);
+    }
 
-        return Schema.createRecord("DYNAMIC", null, null, false, fields);
+    private Schema inferSchemaResultSet(ResultSet metadata) throws SQLException {
+        if (!metadata.next()) {
+            return null;
+        }
+
+        List<Field> fields = new ArrayList<>();
+        String tablename = metadata.getString("TABLE_NAME");
+
+        do {
+            int size = metadata.getInt("COLUMN_SIZE");
+            int scale = metadata.getInt("DECIMAL_DIGITS");
+            int dbtype = metadata.getInt("DATA_TYPE");
+            boolean nullable = DatabaseMetaData.columnNullable == metadata.getInt("NULLABLE");
+            String columnName = metadata.getString("COLUMN_NAME");
+            String defaultValue = metadata.getString("COLUMN_DEF");
+
+            Field field = sqlType2Avro(size, scale, dbtype, nullable, columnName, columnName, defaultValue);
+
+            fields.add(field);
+        } while (metadata.next());
+
+        return Schema.createRecord(tablename, null, null, false, fields);
     }
 
     private Field sqlType2Avro(int size, int scale, int dbtype, boolean nullable, String name, String dbColumnName,
@@ -188,30 +213,6 @@ public class JDBCAvroRegistry extends AvroRegistry {
         return sInstance;
     }
 
-    private Schema inferSchemaResultSet(ResultSet metadata) throws SQLException {
-        if (!metadata.next()) {
-            return null;
-        }
-
-        List<Field> fields = new ArrayList<>();
-        String tablename = metadata.getString("TABLE_NAME");
-
-        do {
-            int size = metadata.getInt("COLUMN_SIZE");
-            int scale = metadata.getInt("DECIMAL_DIGITS");
-            int dbtype = metadata.getInt("DATA_TYPE");
-            boolean nullable = DatabaseMetaData.columnNullable == metadata.getInt("NULLABLE");
-            String columnName = metadata.getString("COLUMN_NAME");
-            String defaultValue = metadata.getString("COLUMN_DEF");
-
-            Field field = sqlType2Avro(size, scale, dbtype, nullable, columnName, columnName, defaultValue);
-
-            fields.add(field);
-        } while (metadata.next());
-
-        return Schema.createRecord(tablename, null, null, false, fields);
-    }
-
     public JDBCConverter getConverter(final Field f) {
         Schema basicSchema = AvroUtils.unwrapIfNullable(f.schema());
 
@@ -220,7 +221,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = influencer.trim();
+                    boolean trimAll = isTrim();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -393,7 +394,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
 
                 @Override
                 public Object convertToAvro(ResultSet value) {
-                    boolean trimAll = influencer.trim();
+                    boolean trimAll = isTrim();
                     // TODO trim the columns which is selected by user
                     try {
                         String result = value.getString(f.pos() + 1);
@@ -440,7 +441,7 @@ public class JDBCAvroRegistry extends AvroRegistry {
                     try {
                         String result = value.getString(f.pos() + 1);
 
-                        if (influencer.trim() && result != null) {
+                        if (isTrim() && result != null) {
                             return result.trim();
                         }
 
@@ -473,6 +474,12 @@ public class JDBCAvroRegistry extends AvroRegistry {
         @Override
         public ResultSet convertToDatum(Object value) {
             throw new UnmodifiableAdapterException();
+        }
+
+        protected boolean isTrim() {
+            if (influencer != null)
+                return influencer.trim();
+            return false;
         }
 
         public void setInfluencer(JDBCAvroRegistryInfluencer influencer) {
