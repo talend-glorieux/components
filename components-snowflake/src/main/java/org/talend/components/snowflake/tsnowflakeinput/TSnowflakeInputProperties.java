@@ -67,4 +67,8 @@ public class TSnowflakeInputProperties extends SnowflakeConnectionTablePropertie
         }
     }
 
+    public void afterManualQuery() {
+        refreshLayout(getForm(Form.MAIN));
+    }
+
 }

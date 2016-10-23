@@ -105,7 +105,7 @@ public class SnowflakeReader<T> extends AbstractBoundedReader<IndexedRecord> {
             resultSet = statement.executeQuery(getQueryString());
             return haveNext();
         } catch (Exception e) {
-            throw new ComponentException(e);
+            throw new IOException("Error processing query: " + getQueryString(), e);
         }
     }
 
@@ -154,7 +154,7 @@ public class SnowflakeReader<T> extends AbstractBoundedReader<IndexedRecord> {
                 getConnection().getConnection().close();
             }
         } catch (SQLException e) {
-            throw new ComponentException(e);
+            throw new IOException(e);
         }
     }
 

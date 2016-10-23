@@ -36,7 +36,6 @@ public final class SnowflakeWriteOperation implements WriteOperation<Result> {
 
     @Override
     public SnowflakeWriter createWriter(RuntimeContainer container) {
-
         return new SnowflakeWriter(this, container);
     }
 

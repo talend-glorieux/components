@@ -191,7 +191,7 @@ final class SnowflakeWriter implements Writer<Result> {
         SnowflakeConnectionProperties connectionProperties = sprops.getConnectionProperties();
 
         Map<LoaderProperty, Object> prop = new HashMap<>();
-        prop.put(LoaderProperty.tableName, sprops.table.tableName.getStringValue());
+        prop.put(LoaderProperty.tableName, sprops.table.tableName.getStringValue().toUpperCase());
         prop.put(LoaderProperty.schemaName, connectionProperties.schemaName.getStringValue().toUpperCase());
         prop.put(LoaderProperty.databaseName, connectionProperties.db.getStringValue().toUpperCase());
         switch (sprops.outputAction.getValue()) {
@@ -215,7 +215,6 @@ final class SnowflakeWriter implements Writer<Result> {
         int i = 0;
         for (Field f : columns) {
             columnsStr.add(f.name());
-            //if (f.schema().getProp(SchemaConstants.TALEND_COLUMN_IS_KEY) != null)
             String key = f.schema().getProp(SchemaConstants.TALEND_COLUMN_IS_KEY);
             if (key != null)
                 keyStr.add(f.name());
