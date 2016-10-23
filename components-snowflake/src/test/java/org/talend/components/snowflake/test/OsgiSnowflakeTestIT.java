@@ -53,6 +53,7 @@ public class OsgiSnowflakeTestIT extends SnowflakeTestIT {
     static public Option[] getSnowflakePaxExamOption() {
         return options(composite(ComponentsPaxExamOptions.getOptions()), //
                 linkBundle("org.talend.components-components-common-bundle"), //
+                linkBundle("org.talend.components-components-common-tests").noStart(), //
                 linkBundle("org.talend.components-components-snowflake-bundle"), //
                 propagateSystemProperties("snowflake.account", "snowflake.password", "snowflake.warehouse", "snowflake.schema",
                         "snowflake.db", "snowflake.user"));

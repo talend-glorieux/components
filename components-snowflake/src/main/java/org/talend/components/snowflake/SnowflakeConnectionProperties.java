@@ -51,9 +51,9 @@ public class SnowflakeConnectionProperties extends ComponentPropertiesImpl
 
     public Property<String> warehouse = newString("warehouse"); //$NON-NLS-1$
 
-    public Property<String> db = newString("db"); //$NON-NLS-1$
+    public Property<String> db = newString("db").setRequired(); //$NON-NLS-1$
 
-    public Property<String> schemaName = newString("schemaName"); //$NON-NLS-1$
+    public Property<String> schemaName = newString("schemaName").setRequired(); //$NON-NLS-1$
 
 
 

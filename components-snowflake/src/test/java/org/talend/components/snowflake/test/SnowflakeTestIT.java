@@ -191,6 +191,19 @@ public class SnowflakeTestIT extends AbstractComponentTest {
     }
 
 
+    protected void resetUser() throws SQLException {
+        // Make sure the user is unlocked if locked. Snowflake will lock the user if too many logins
+        // So this unlocks it
+        testConnection.createStatement().execute(
+                "alter user " + user + " set mins_to_unlock=0");
+    }
+
+
+    @Before
+    public void setUp() throws SQLException {
+        resetUser();
+    }
+
     @After
     public void tearDown() throws SQLException {
         if (!false) {
@@ -433,6 +446,7 @@ public class SnowflakeTestIT extends AbstractComponentTest {
     }
 
     @Test
+    @Ignore
     public void testInputProps() throws Throwable {
         TSnowflakeInputProperties props = (TSnowflakeInputProperties) new TSnowflakeInputDefinition().createProperties();
         assertFalse(props.manualQuery.getValue());
@@ -586,16 +600,15 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         List<NamedThing> all = mlProps.selectedTableNames.getValue();
         assertNull(all);
         List<NamedThing> possibleValues = (List<NamedThing>) mlProps.selectedTableNames.getPossibleValues();
-        assertTrue(possibleValues.size() > 50);
+        System.out.println("possibleValues: " + possibleValues);
+        assertEquals(1, possibleValues.size());
         List<NamedThing> selected = new ArrayList<>();
         selected.add(possibleValues.get(0));
-        selected.add(possibleValues.get(2));
-        selected.add(possibleValues.get(3));
 
         mlProps.selectedTableNames.setValue(selected);
         getComponentService().afterFormFinish(modForm.getName(), mlProps);
         LOGGER.debug(repoProps.toString());
-        assertEquals(4, repoProps.size());
+        assertEquals(2, repoProps.size());
         int i = 0;
         for (RepoProps rp : repoProps) {
             if (i == 0) {
@@ -606,7 +619,7 @@ public class SnowflakeTestIT extends AbstractComponentTest {
             } else {
                 SnowflakeTableProperties storedModule = (SnowflakeTableProperties) rp.props;
                 assertEquals(selected.get(i - 1).getName(), storedModule.tableName.getValue());
-                assertTrue(rp.schema.getFields().size() > 10);
+                assertTrue(rp.schema.getFields().size() == 6);
                 assertThat(storedModule.main.schema.getStringValue(), is(rp.schema.toString()));
             }
             i++;
@@ -680,10 +693,10 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         for (Schema.Field child : schema.getFields()) {
             LOGGER.debug(child.name());
         }
-        assertEquals("Id", schema.getFields().get(0).name());
-        LOGGER.debug("Module \"" + testTable +
+        assertEquals("ID", schema.getFields().get(0).name());
+        LOGGER.debug("Table \"" + testTable +
                 "\" column size:" + schema.getFields().size());
-        assertTrue(schema.getFields().size() > 40);
+        assertTrue(schema.getFields().size() == 6);
     }
 
     @Test
@@ -745,10 +758,13 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         // Check that the null referenced component works.
         PropertiesTestUtils.checkAndAfter(getComponentService(), props.connection.getForm(Form.REFERENCE), "referencedComponent", props.connection);
 
+        resetUser();
+
         SnowflakeSourceOrSink = new SnowflakeSourceOrSink();
         SnowflakeSourceOrSink.initialize(null, props);
-        SnowflakeSourceOrSink.validate(null);
-        assertEquals(ValidationResult.Result.OK, SnowflakeSourceOrSink.validate(null).getStatus());
+        ValidationResult result = SnowflakeSourceOrSink.validate(null);
+        System.out.println(result);
+        assertEquals(ValidationResult.Result.OK, result.getStatus());
     }
 
     @Test
@@ -859,10 +875,10 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         Schema main = SchemaBuilder.record("Main").fields().name("C").type().stringType().noDefault().name("D").type()
                 .stringType().noDefault().endRecord();
 
-        outputProps.setValue("module.main.schema", main);
+        outputProps.setValue("table.main.schema", main);
         outputProps.setValue("schemaReject.schema", reject);
 
-        Schema main2 = (Schema) outputProps.getValuedProperty("module.main.schema").getValue();
+        Schema main2 = (Schema) outputProps.getValuedProperty("table.main.schema").getValue();
         Schema reject2 = (Schema) outputProps.getValuedProperty("schemaReject.schema").getValue();
         assertEquals(main.toString(), main2.toString());
         assertEquals(reject.toString(), reject2.toString());
@@ -872,7 +888,7 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         TSnowflakeOutputProperties afterSerialized = org.talend.daikon.properties.Properties.Helper.fromSerializedPersistent(serialized,
                 TSnowflakeOutputProperties.class).object;
 
-        main2 = (Schema) afterSerialized.getValuedProperty("module.main.schema").getValue();
+        main2 = (Schema) afterSerialized.getValuedProperty("table.main.schema").getValue();
         reject2 = (Schema) afterSerialized.getValuedProperty("schemaReject.schema").getValue();
         assertEquals(main.toString(), main2.toString());
         assertEquals(reject.toString(), reject2.toString());

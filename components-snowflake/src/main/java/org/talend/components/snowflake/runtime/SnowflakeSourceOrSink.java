@@ -51,22 +51,18 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
     @Override
     public ValidationResult validate(RuntimeContainer container) {
-        ValidationResult vr = new ValidationResult();
         try {
-            if (null != connect(container)) {
-                vr.setStatus(Result.OK);
-                vr.setMessage("Connection Successful");
-            } else {
-                vr.setStatus(Result.ERROR);
-                vr.setMessage("Could not establish connection to the Snowflake DB");
-            }
+            connect(container);
         } catch (Exception ex) {
             return exceptionToValidationResult(ex);
         }
+        ValidationResult vr = new ValidationResult();
+        vr.setStatus(Result.OK);
+        vr.setMessage("Connection Successful");
         return vr;
     }
 
-    protected static ValidationResult exceptionToValidationResult(Exception ex) {
+    public static ValidationResult exceptionToValidationResult(Exception ex) {
         ValidationResult vr = new ValidationResult();
         vr.setMessage(ex.getMessage());
         vr.setStatus(ValidationResult.Result.ERROR);
@@ -76,7 +72,17 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
     public static ValidationResult validateConnection(SnowflakeProvideConnectionProperties properties) {
         SnowflakeSourceOrSink sss = new SnowflakeSourceOrSink();
         sss.initialize(null, (ComponentProperties) properties);
-        return sss.validate(null);
+        try {
+            sss.connect(null);
+            // Make sure we can get the schema names, as that tests that all of the connection parameters are really OK
+            sss.getSchemaNames((RuntimeContainer) null);
+        } catch (Exception ex) {
+            return exceptionToValidationResult(ex);
+        }
+        ValidationResult vr = new ValidationResult();
+        vr.setStatus(Result.OK);
+        vr.setMessage("Connection Successful");
+        return vr;
     }
 
     public SnowflakeConnectionProperties getConnectionProperties() {
@@ -148,7 +154,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
             conn = DriverManager.getConnection(connectionURL, user, password);
         } catch (Exception e) {
-            throw new ComponentException(exceptionToValidationResult(e));
+            throw new IOException(e);
         }
 
         nativeConn.setConnection(conn);
@@ -168,7 +174,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
             ss.connect(container);
             return ss.getSchemaNames(container);
         } catch (Exception ex) {
-            throw new ComponentException(exceptionToValidationResult(ex));
+            throw new IOException(ex);
         }
     }
 
@@ -179,14 +185,14 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
     protected String getCatalog() {
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        return connProps.db.getStringValue();
+        // Have to be upper case because the metaData.getTables() quotes this
+        return connProps.db.getStringValue().toUpperCase();
     }
 
     protected String getDbSchema() {
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        return connProps.schemaName.getStringValue();
+        return connProps.schemaName.getStringValue().toUpperCase();
     }
-
 
     protected List<NamedThing> getSchemaNames(Connection connection) throws IOException {
         // Returns the list with a table names (for the wh, db and schema)
@@ -198,15 +204,13 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
             String[] types = {"TABLE"};
 
             ResultSet resultIter = metaData.getTables(getCatalog(), getDbSchema(), null, types);
-
-            // ResultSet resultIter = metaData.getCatalogs();
             String tableName = null;
             while (resultIter.next()) {
                 tableName = resultIter.getString("TABLE_NAME");
                 returnList.add(new SimpleNamedThing(tableName, tableName));
             }
         } catch (SQLException se) {
-            throw new IOException(se);
+            throw new IOException("Error when searching for tables in: " + getCatalog() + "." + getDbSchema() + ": " + se.getMessage(), se);
         }
         return returnList;
     }
@@ -219,7 +223,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
         try {
             connection = ss.connect(container).getConnection();
         } catch (Exception ex) {
-            throw new ComponentException(exceptionToValidationResult(ex));
+            throw new IOException(ex);
         }
         return ss.getSchema(connection, table);
     }
@@ -231,6 +235,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
     protected Schema getSchema(Connection connection, String tableName) throws IOException {
         Schema tableSchema = null;
+        tableName = tableName.toUpperCase();
 
         try {
             DatabaseMetaData metaData = connection.getMetaData();
@@ -241,7 +246,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
             // Update the schema with Primary Key details
             // FIXME - move this into the inferSchema stuff
             if (null != tableSchema) {
-                ResultSet keysIter = metaData.getPrimaryKeys(properties.getConnectionProperties().db.getStringValue(), null, tableName);
+                ResultSet keysIter = metaData.getPrimaryKeys(getCatalog(), getDbSchema(), tableName);
 
                 List<String> pkColumns = new ArrayList<>(); // List of Primary Key columns for this table
                 while (keysIter.next()) {
@@ -256,7 +261,7 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
             }
 
         } catch (SQLException se) {
-            TalendRuntimeException.unexpectedException(se);
+            throw new IOException(se);
         }
 
         return tableSchema;

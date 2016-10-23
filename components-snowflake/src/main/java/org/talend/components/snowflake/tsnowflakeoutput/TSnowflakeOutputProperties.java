@@ -50,7 +50,7 @@ public class TSnowflakeOutputProperties extends SnowflakeConnectionTableProperti
         @Override
         public ValidationResult afterTableName() throws Exception {
             ValidationResult validationResult = super.afterTableName();
-            List<String> fieldNames = getFieldNames(main.schema);
+            List<String> fieldNames = getFieldNames(table.main.schema);
             upsertKeyColumn.setPossibleValues(fieldNames);
             return validationResult;
         }
