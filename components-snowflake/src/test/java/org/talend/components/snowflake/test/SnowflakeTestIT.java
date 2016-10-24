@@ -79,7 +79,7 @@ public class SnowflakeTestIT extends AbstractComponentTest {
     private static String schema = System.getProperty("snowflake.schema");
     private static String db = System.getProperty("snowflake.db");
 
-    private static String TEST_TABLE = "loader_test_table";
+    private static String TEST_TABLE = "LOADER_TEST_TABLE";
 
     // So that multiple tests can run at the same time
     private static String testTable = TEST_TABLE + "_" + Integer.toString(ThreadLocalRandom.current().nextInt(1, 100000));
@@ -497,6 +497,38 @@ public class SnowflakeTestIT extends AbstractComponentTest {
                 fail("Get error before delete!");
             }
         }
+    }
+
+    @Test
+    public void testOutputBadTable() throws Throwable {
+        TSnowflakeOutputProperties outputProps = (TSnowflakeOutputProperties) getComponentService()
+                .getComponentProperties(TSnowflakeOutputDefinition.COMPONENT_NAME);
+        setupProps(outputProps.connection);
+
+        checkAndSetupTable(outputProps);
+
+        SnowflakeTableProperties tableProps = outputProps.table;
+        Form f = tableProps.getForm(Form.REFERENCE);
+        tableProps.tableName.setValue("BADONE");
+        tableProps = (SnowflakeTableProperties) PropertiesTestUtils.checkAndAfter(getComponentService(), f, tableProps.tableName.getName(), tableProps);
+        System.out.println(tableProps.getValidationResult());
+        assertEquals(ValidationResult.Result.ERROR, tableProps.getValidationResult().getStatus());
+        assertThat(tableProps.getValidationResult().getMessage(), containsString("BADONE"));
+    }
+
+    @Test
+    public void testOutputBadConnection() throws Throwable {
+        TSnowflakeOutputProperties outputProps = (TSnowflakeOutputProperties) getComponentService()
+                .getComponentProperties(TSnowflakeOutputDefinition.COMPONENT_NAME);
+
+        // No connection information
+        SnowflakeTableProperties tableProps = outputProps.table;
+        Form f = tableProps.getForm(Form.REFERENCE);
+        tableProps.tableName.setValue("BADONE");
+        tableProps = (SnowflakeTableProperties) PropertiesTestUtils.checkAndAfter(getComponentService(), f, tableProps.tableName.getName(), tableProps);
+        System.out.println(tableProps.getValidationResult());
+        assertEquals(ValidationResult.Result.ERROR, tableProps.getValidationResult().getStatus());
+        assertThat(tableProps.getValidationResult().getMessage(), containsString("Missing user name"));
     }
 
     static class RepoProps {

@@ -191,9 +191,9 @@ final class SnowflakeWriter implements Writer<Result> {
         SnowflakeConnectionProperties connectionProperties = sprops.getConnectionProperties();
 
         Map<LoaderProperty, Object> prop = new HashMap<>();
-        prop.put(LoaderProperty.tableName, sprops.table.tableName.getStringValue().toUpperCase());
-        prop.put(LoaderProperty.schemaName, connectionProperties.schemaName.getStringValue().toUpperCase());
-        prop.put(LoaderProperty.databaseName, connectionProperties.db.getStringValue().toUpperCase());
+        prop.put(LoaderProperty.tableName, sprops.table.tableName.getStringValue());
+        prop.put(LoaderProperty.schemaName, connectionProperties.schemaName.getStringValue());
+        prop.put(LoaderProperty.databaseName, connectionProperties.db.getStringValue());
         switch (sprops.outputAction.getValue()) {
             case INSERT:
                 prop.put(LoaderProperty.operation, Operation.INSERT);

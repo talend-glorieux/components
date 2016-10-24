@@ -10,6 +10,7 @@ import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
+import org.talend.daikon.properties.property.StringProperty;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class SnowflakeTableProperties extends ComponentPropertiesImpl implements
     //
     // Properties
     //
-    public Property<String> tableName = newString("tableName"); //$NON-NLS-1$
+    public StringProperty tableName = newString("tableName"); //$NON-NLS-1$
 
     public ISchemaListener schemaListener;
 
@@ -63,25 +64,27 @@ public class SnowflakeTableProperties extends ComponentPropertiesImpl implements
         this.schemaListener = schemaListener;
     }
 
-    // consider beforeActivate and beforeRender (change after to afterActivate)l
-
     public ValidationResult beforeTableName() throws Exception {
+        ValidationResult vr = new ValidationResult();
         try {
             List<NamedThing> tableNames = SnowflakeSourceOrSink.getSchemaNames(null, connection);
-            tableName.setPossibleValues(tableNames);
-        } catch (ComponentException ex) {
-            return ex.getValidationResult();
+            tableName.setPossibleNamedThingValues(tableNames);
+        } catch (Exception ex) {
+            vr.setMessage(ex.getMessage());
+            vr.setStatus(ValidationResult.Result.ERROR);
         }
-        return ValidationResult.OK;
+        return vr;
     }
 
     public ValidationResult afterTableName() throws Exception {
+        ValidationResult vr = new ValidationResult();
         try {
             main.schema.setValue(SnowflakeSourceOrSink.getSchema(null, connection, tableName.getStringValue()));
-        } catch (ComponentException ex) {
-            return ex.getValidationResult();
+        } catch (Exception ex) {
+            vr.setMessage(ex.getMessage());
+            vr.setStatus(ValidationResult.Result.ERROR);
         }
-        return ValidationResult.OK;
+        return vr;
     }
 
     @Override

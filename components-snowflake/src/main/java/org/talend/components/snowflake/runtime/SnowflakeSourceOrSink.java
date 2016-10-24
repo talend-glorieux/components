@@ -185,13 +185,12 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
     protected String getCatalog() {
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        // Have to be upper case because the metaData.getTables() quotes this
-        return connProps.db.getStringValue().toUpperCase();
+        return connProps.db.getStringValue();
     }
 
     protected String getDbSchema() {
         SnowflakeConnectionProperties connProps = properties.getConnectionProperties();
-        return connProps.schemaName.getStringValue().toUpperCase();
+        return connProps.schemaName.getStringValue();
     }
 
     protected List<NamedThing> getSchemaNames(Connection connection) throws IOException {
@@ -235,7 +234,6 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
     protected Schema getSchema(Connection connection, String tableName) throws IOException {
         Schema tableSchema = null;
-        tableName = tableName.toUpperCase();
 
         try {
             DatabaseMetaData metaData = connection.getMetaData();

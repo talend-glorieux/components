@@ -10,22 +10,6 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputProperties;
 import org.talend.daikon.exception.TalendRuntimeException;
 
-/**
- * The SnowflakeSource provides the mechanism to supply data to other
- * components at run-time.
- * <p>
- * Based on the Apache Beam project, the Source mechanism is appropriate to
- * describe distributed and non-distributed data sources and can be adapted
- * to scalable big data execution engines on a cluster, or run locally.
- * <p>
- * This example component describes an input source that is guaranteed to be
- * run in a single JVM (whether on a cluster or locally), so:
- * <p>
- * <ul>
- * <li>the simplified logic for reading is found in the {@link SnowflakeReader},
- * and</li>
- * </ul>
- */
 public class SnowflakeSource extends SnowflakeSourceOrSink implements BoundedSource {
 
     public SnowflakeSource() {

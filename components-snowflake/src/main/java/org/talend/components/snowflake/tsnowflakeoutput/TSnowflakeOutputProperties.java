@@ -50,8 +50,10 @@ public class TSnowflakeOutputProperties extends SnowflakeConnectionTableProperti
         @Override
         public ValidationResult afterTableName() throws Exception {
             ValidationResult validationResult = super.afterTableName();
-            List<String> fieldNames = getFieldNames(table.main.schema);
-            upsertKeyColumn.setPossibleValues(fieldNames);
+            if (table.main.schema.getValue() != null) {
+                List<String> fieldNames = getFieldNames(table.main.schema);
+                upsertKeyColumn.setPossibleValues(fieldNames);
+            }
             return validationResult;
         }
     }
@@ -127,7 +129,8 @@ public class TSnowflakeOutputProperties extends SnowflakeConnectionTableProperti
     }
 
     public void beforeUpsertKeyColumn() {
-        upsertKeyColumn.setPossibleValues(getFieldNames(table.main.schema));
+        if (table.main.schema.getValue() != null)
+            upsertKeyColumn.setPossibleValues(getFieldNames(table.main.schema));
     }
 
     private void updateOutputSchemas() {
