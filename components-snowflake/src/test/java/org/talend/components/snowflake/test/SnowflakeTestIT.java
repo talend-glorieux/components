@@ -333,7 +333,7 @@ public class SnowflakeTestIT extends AbstractComponentTest {
 
     protected void checkAndDelete(String random, SnowflakeConnectionTableProperties props, int count) throws Exception {
         List<IndexedRecord> inputRows = readAndCheckRows(props, count);
-        deleteRows(inputRows, props);
+        handleRows(inputRows, props, TSnowflakeOutputProperties.OutputAction.DELETE);
         readAndCheckRows(props, 0);
     }
 
@@ -375,22 +375,31 @@ public class SnowflakeTestIT extends AbstractComponentTest {
         return writeOperation.createWriter(adaptor);
     }
 
+    protected TSnowflakeOutputProperties getRightProperties(SnowflakeConnectionTableProperties props) {
+        TSnowflakeOutputProperties handleProperties;
+        if (props instanceof TSnowflakeOutputProperties) {
+            handleProperties = (TSnowflakeOutputProperties) props;
+        } else {
+            handleProperties = new TSnowflakeOutputProperties("output"); //$NON-NLS-1$
+            handleProperties.copyValuesFrom(props);
+        }
+        return handleProperties;
+    }
+
     // Returns the rows written (having been re-read so they have their Ids)
     protected List<IndexedRecord> writeRows(SnowflakeConnectionTableProperties props,
                                             List<IndexedRecord> outputRows) throws Exception {
-        TSnowflakeOutputProperties outputProps = new TSnowflakeOutputProperties("output"); //$NON-NLS-1$
-        outputProps.copyValuesFrom(props);
+        TSnowflakeOutputProperties outputProps = getRightProperties(props);
         outputProps.outputAction.setValue(TSnowflakeOutputProperties.OutputAction.INSERT);
         writeRows(makeWriter(outputProps), outputRows);
         return readAndCheckRows(props, outputRows.size());
     }
 
-    protected void deleteRows(List<IndexedRecord> rows, SnowflakeConnectionTableProperties props) throws Exception {
-        TSnowflakeOutputProperties deleteProperties = new TSnowflakeOutputProperties("delete"); //$NON-NLS-1$
-        deleteProperties.copyValuesFrom(props);
-        deleteProperties.outputAction.setValue(TSnowflakeOutputProperties.OutputAction.DELETE);
-        LOGGER.debug("deleting " + rows.size() + " rows");
-        writeRows(makeWriter(deleteProperties), rows);
+    protected void handleRows(List<IndexedRecord> rows, SnowflakeConnectionTableProperties props, TSnowflakeOutputProperties.OutputAction action) throws Exception {
+        TSnowflakeOutputProperties handleProperties = getRightProperties(props);
+        handleProperties.outputAction.setValue(action);
+        LOGGER.debug(action + ": " +  rows.size() + " rows");
+        writeRows(makeWriter(handleProperties), rows);
     }
 
     protected void checkAndSetupTable(SnowflakeConnectionTableProperties props) throws Throwable {
@@ -996,8 +1005,39 @@ public class SnowflakeTestIT extends AbstractComponentTest {
     @Test
     public void testOutputDelete() throws Throwable {
         SnowflakeConnectionTableProperties props = populateOutput(100);
-        deleteRows(makeRows(100), props);
+        handleRows(makeRows(100), props, TSnowflakeOutputProperties.OutputAction.DELETE);
         assertEquals(0, readRows(props).size());
+    }
+
+    @Test
+    public void testOutputModify() throws Throwable {
+        SnowflakeConnectionTableProperties props = populateOutput(100);
+        List<IndexedRecord> rows = makeRows(2);
+        rows.get(0).put(1, "modified1");
+        rows.get(1).put(1, "modified2");
+        handleRows(rows, props, TSnowflakeOutputProperties.OutputAction.UPDATE);
+        List<IndexedRecord> readRows = readRows(props);
+        assertEquals("modified1", readRows.get(0).get(1));
+        assertEquals("modified2", readRows.get(1).get(1));
+        assertEquals("foo_2", readRows.get(2).get(1));
+        assertEquals(100, readRows.size());
+    }
+
+    @Test
+    public void testOutputUpsert() throws Throwable {
+        TSnowflakeOutputProperties props = (TSnowflakeOutputProperties) populateOutput(100);
+        handleRows(makeRows(50), props, TSnowflakeOutputProperties.OutputAction.DELETE);
+        assertEquals(50, readRows(props).size());
+
+        Form f = props.getForm(MAIN);
+        props = (TSnowflakeOutputProperties) PropertiesTestUtils.checkAndBeforePresent(getComponentService(), f, props.upsertKeyColumn.getName(),
+                props);
+        LOGGER.debug(props.upsertKeyColumn.getPossibleValues().toString());
+        assertEquals(6, props.upsertKeyColumn.getPossibleValues().size());
+        props.upsertKeyColumn.setStoredValue("ID");
+
+        handleRows(makeRows(100), props, TSnowflakeOutputProperties.OutputAction.UPSERT);
+        assertEquals(100, readRows(props).size());
     }
 
     @Test

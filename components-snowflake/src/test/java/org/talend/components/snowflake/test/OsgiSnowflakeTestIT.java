@@ -57,6 +57,7 @@ public class OsgiSnowflakeTestIT extends SnowflakeTestIT {
                 linkBundle("org.talend.components-components-snowflake-bundle"), //
                 propagateSystemProperties("snowflake.account", "snowflake.password", "snowflake.warehouse", "snowflake.schema",
                         "snowflake.db", "snowflake.user"));
+                //vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"));
     }
 
     @Override

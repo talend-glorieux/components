@@ -208,7 +208,7 @@
                             <classifier>bundle</classifier>
                             <instructions>
                                 <Bundle-SymbolicName>org.talend.components.snowflake</Bundle-SymbolicName>
-                                <Import-Package>!*internal,org.talend*,org.slf4j*,javax.xml.namespace,javax.net*,javax.security*,org.apache.commons*,org.apache.avro.*,org.codehaus.jackson*</Import-Package>
+                                <Import-Package>!*internal,org.talend*,org.slf4j*,javax*,org.apache.commons*,org.xml.sax*,org.apache.avro.*,org.codehaus.jackson*</Import-Package>
                                 <!-- Need to export the jdbc stuff -->
                                 <Export-Package>org.talend.components.snowflake*,com.snowflake*</Export-Package>
                                 <Service-Component>*</Service-Component>

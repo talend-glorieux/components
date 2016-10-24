@@ -226,10 +226,9 @@ final class SnowflakeWriter implements Writer<Result> {
         if (sprops.outputAction.getValue() == UPSERT) {
             keyStr.clear();
             keyStr.add(sprops.upsertKeyColumn.getValue());
-        } else {
-            if (keyStr.size() > 0)
-                prop.put(LoaderProperty.keys, keyStr);
         }
+        if (keyStr.size() > 0)
+            prop.put(LoaderProperty.keys, keyStr);
 
         prop.put(LoaderProperty.remoteStage, "~");
 
